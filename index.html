@@ -207,8 +207,9 @@ const upInBody=q=>{const[w,x,y,z]=q;return[2*(x*z-w*y),2*(y*z+w*x),1-2*(x*x+y*y)
 function qFromUp(f){const u=norm(f),s=Math.hypot(u[1],u[0]);if(s<1e-9)return u[2]>0?[1,0,0,0]:[0,1,0,0];const h=Math.atan2(s,u[2])/2,k=Math.sin(h)/s;return[Math.cos(h),u[1]*k,-u[0]*k,0];}
 const TERR={flat:'Flat ground',up:'Uphill','steep-up':'Steep uphill',down:'Downhill','steep-down':'Steep downhill','stairs-up':'Stairs up','stairs-down':'Stairs down'};
 const TERR_SAY={up:'Uphill.','steep-up':'Steep uphill. Short steps, lean forward.',down:'Downhill. Shorter steps.','steep-down':'Steep downhill. Slow down and take short steps.','stairs-up':'Stairs going up.','stairs-down':'Stairs going down. Hold the rail.',flat:'Flat ground again.'};
-const NAV={v:[0,0,0],vpk:0,dir:[1,0],landed:false,vmin:0,ready:false,q:[1,0,0,0],bias:[0,0,0],g:9.81,ei:[0,0,0],quietMs:0,still:true,buf:[],peakW:0,strides:[],sw:[],lastImpact:-1e9,landT:-1e9,pend:null,pendN:0,grade:0,last:null};
-function navInit(f0,gb){lastSlip=-1e9;Object.assign(NAV,{warm:2,learn:[],tb:0,v:[0,0,0],landed:false,ready:true,q:qFromUp(f0),bias:gb,g:Math.hypot(f0[0],f0[1],f0[2])||9.81,ei:[0,0,0],quietMs:0,still:true,buf:[],peakW:0,strides:[],sw:[],pend:null,pendN:0,grade:0,last:null});}
+const SLIP_B=22;
+const NAV={gh:[],v:[0,0,0],vpk:0,dir:[1,0],landed:false,vmin:0,ready:false,q:[1,0,0,0],bias:[0,0,0],g:9.81,ei:[0,0,0],quietMs:0,still:true,buf:[],peakW:0,strides:[],sw:[],lastImpact:-1e9,landT:-1e9,pend:null,pendN:0,grade:0,last:null};
+function navInit(f0,gb){lastSlip=-1e9;Object.assign(NAV,{gh:[],warm:2,learn:[],tb:0,v:[0,0,0],landed:false,ready:true,q:qFromUp(f0),bias:gb,g:Math.hypot(f0[0],f0[1],f0[2])||9.81,ei:[0,0,0],quietMs:0,still:true,buf:[],peakW:0,strides:[],sw:[],pend:null,pendN:0,grade:0,last:null});}
 const NAVTH=()=>S.mount==='sock'?{w:1.6,a:1.5}:{w:0.6,a:1.0};   // quasi-still limits: rad/s, m/s²
 function navStep(f,w0,dt,t){
  const w=[w0[0]-NAV.bias[0],w0[1]-NAV.bias[1],w0[2]-NAV.bias[2]];
@@ -224,9 +225,13 @@ function navStep(f,w0,dt,t){
  // moves at  v = ω × (r · shin axis)  with r ≈ 10 cm (phone centre above the ankle). Shoe mount: r = 0.
  // ---- slip: after the foot has landed (swing over, speed low), it SPEEDS UP again with little rotation.
  //      A normal landing only slows the foot down; a slip accelerates it 0.1 -> 1.87 m/s in ~130 ms.
- const ah=Math.hypot(aw[0],aw[1]);NAV.sw.push([t,ah,wm]);while(NAV.sw.length&&t-NAV.sw[0][0]>SLIP_WIN)NAV.sw.shift();
+ const ah=Math.hypot(aw[0],aw[1]);NAV.sw.push([t,ah,wm,aw[2]]);NAV.gh.push([t,wm]);while(NAV.gh.length&&t-NAV.gh[0][0]>700)NAV.gh.shift();while(NAV.sw.length&&t-NAV.sw[0][0]>SLIP_WIN)NAV.sw.shift();
  const hAvg=avg(NAV.sw.map(x=>x[1])),wAvg=avg(NAV.sw.map(x=>x[2]));
  live.slideAvg=hAvg;
+ // rule B (fitted on Bea's real recording, phone in sock): a slip throws the shin hard AND pushes the foot
+ // sideways along the ground at the same moment. Over 130 ms: horizontal ≥ 22 m/s² and shin rotation ≥ 340 °/s.
+ // Normal walking peaked at 22.2 m/s² / 299 °/s; the 3 recorded slips were 24.9–38.4 m/s² / 370–409 °/s.
+ if(NAV.sw.length>=4&&hAvg>=SLIP_B&&wAvg>=340*D2R&&t-lastSlip>2500){lastSlip=t;NAV.sw=[];NAV.landed=false;slip('sensor');}
  if(!planted&&!NAV.still){for(let i=0;i<3;i++)NAV.v[i]+=aw[i]*dt;
   const sp=Math.hypot(NAV.v[0],NAV.v[1]);
   if(!NAV.landed&&sp>NAV.vpk){NAV.vpk=sp;NAV.dir=[NAV.v[0]/sp,NAV.v[1]/sp];}   // walking direction = swing peak velocity
@@ -249,9 +254,10 @@ function navSwingStart(t){closeStance();}
    Research: shank gyroscope is the most reliable signal for gait events. One swing = 2 steps.     */
 const SW={lp:0,on:false,peak:0,t0:0,last:-1e9};
 function swingStep(gyroDeg,t){SW.lp+=(gyroDeg-SW.lp)*0.35;
- if(!SW.on){if(SW.lp>110&&t-SW.last>550){SW.on=true;SW.peak=SW.lp;SW.t0=t;}}
+ if(!SW.on){if(SW.lp>110&&t-SW.last>450){SW.on=true;SW.peak=SW.lp;SW.t0=t;}}
  else{if(SW.lp>SW.peak)SW.peak=SW.lp;
-  if(SW.lp<60){SW.on=false;const dur=t-SW.t0;if(SW.peak>=140&&dur>=100&&dur<=900){SW.last=t;stride(t);}}
+  if(SW.lp<Math.max(70,0.45*SW.peak)){SW.on=false;   // real data: the shin still turns 60–100 °/s while planted
+  const dur=t-SW.t0;if(SW.peak>=140&&dur>=100&&dur<=900){SW.last=t;stride(t);}}
   else if(t-SW.t0>1500)SW.on=false;}}
 // Each swing between two planted moments is integrated with zero velocity at both ends (ZUPT).
 // A phone on the shin is never perfectly still when planted, which leaves a small, steady bias per
@@ -270,6 +276,7 @@ function navSwingEnd(t){const b=NAV.buf;NAV.buf=[];let T=0;for(const x of b)T+=x
  NAV.strides.push({dz:dz-NAV.tb*dd,dd});if(NAV.strides.length>8)NAV.strides.shift();
  S.distM+=dd;classifyTerrain();}
 function classifyTerrain(){
+ if(S.mount==='sock'&&!S.slopeForced)return;   // real sock data: ±18 cm per stride → slope from the route instead
  if(S.slopeForced){setSlopeState(S.slopeForced);return;}
  const r=NAV.strides.slice(-3);if(r.length<2)return;let sd=0,sz=0;for(const x of r){sd+=x.dd;sz+=x.dz;}if(sd<1)return;
  const g=sz/sd;NAV.grade=g;live.ground=Math.atan(g)*57.2958;
@@ -342,6 +349,9 @@ const totalM=()=>S.steps*STEP_LEN+S.offset;
 const pos=()=>((totalM()%TRAIL_M)+TRAIL_M)%TRAIL_M;
 const lap=()=>Math.floor(totalM()/TRAIL_M);
 function ahead(h){let d=h.pos-pos();if(d<=0)d+=TRAIL_M;return d;}
+// what the route says is under you now (reported by others): inside the 10 m after a pin
+function routeNow(){for(const h of S.hazards){if(!['up','down','slope'].includes(h.type))continue;const d=pos()-h.pos;if(d>=0&&d<10)return h.type==='down'?'down':'up';}return'flat';}
+const terrainNow=()=>S.slopeForced||(S.mount==='sock'?routeNow():S.slope);
 function nextHazard(){let best=null;for(const h of S.hazards)if(ALERT_TYPES.includes(h.type)&&(!best||ahead(h)<ahead(best)))best=h;return best;}
 function checkHazards(){const L=lap();for(const h of S.hazards){if(!ALERT_TYPES.includes(h.type))continue;const d=h.pos-pos();
  if(d>ALERT_M&&d<=EARLY_M&&h.earlyLap!==L){h.earlyLap=L;alertHazard(h,d,true);}
@@ -462,7 +472,7 @@ function coachCue(a){if(S.onBreak)return'On a break. Start walking to resume.';
 function ringHTML(){const R=54,L=2*Math.PI*R,f=Math.min(1,S.steps/S.goal);
  return`<div style="position:relative;width:136px;height:136px;flex:none"><svg viewBox="0 0 136 136" width="136" height="136" style="transform:rotate(-90deg)"><circle cx="68" cy="68" r="${R}" stroke="var(--soft)" stroke-width="12" fill="none"/><circle cx="68" cy="68" r="${R}" stroke="var(--teal)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L*(1-f)}"/></svg>
  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><b id="vSteps" style="font-size:30px;font-weight:800;letter-spacing:-.04em">${S.steps.toLocaleString()}</b><span class="small">of ${S.goal.toLocaleString()} steps</span></div></div>`;}
-function runHTML(){const h=nextHazard();const sl=S.slope==='up'||S.slope==='down'?S.slope:'flat';
+function runHTML(){const h=nextHazard();const sl0=terrainNow(),sl=sl0==='up'||sl0==='down'?sl0:'flat';
  const col=sl==='up'?C.orange:sl==='down'?C.blue:C.green,name={flat:'Flat ground',up:'Uphill',down:'Downhill'}[sl];
  const big=(icon,c,tag,title,sub,soft)=>`<div class="card" style="display:flex;align-items:center;gap:16px;padding:18px"><span style="width:60px;height:60px;border-radius:18px;background:${soft?c+'22':c};display:flex;align-items:center;justify-content:center;flex:none">${I(icon,30,soft?c:'#fff')}</span><div><div class="tag">${tag}</div><div style="font-size:23px;font-weight:800;letter-spacing:-.02em">${title}</div>${sub?`<div class="small">${sub}</div>`:''}</div></div>`;
  return`<div class="hdr"><div><div class="hS">Walking to</div><h1 class="hT" style="font-size:24px">${S.dest||'River Valley Trail'}</h1></div><button class="pill soft" data-act="demo">${I('sliders',15)} Demo</button></div>
@@ -616,7 +626,7 @@ function safetyHTML(){const a=analysis();return`<div class="hdr"><div><h1 class=
  ${[['alert','Hard fall','20 s → family, 45 s → 911'],['ice','Slip, then no movement','20 s → family'],['run','Stopped 90 s → “Did you fall?”','30 s → family, 2 min → 911'],['pause','Pause runs over','30 s → family'],['pin','Late to destination','1 min → family'],['phone','Battery under 10%','Last location → family']].map(([i,n,r])=>`<div class="lrow"><span style="width:34px;height:34px;border-radius:11px;background:#FBE9E7;display:flex;align-items:center;justify-content:center;flex:none">${I(i,17,C.red)}</span><div class="tx"><b style="font-size:14px">${n}</b><span>${r}</span></div></div>`).join('')}
  ${S.alertsSent.length?`<p class="small">Alerts sent today: ${S.alertsSent.join(', ')}</p>`:''}</div> <div class="card"><div class="lrow" style="padding:0"><div class="tx"><b style="font-size:16px">Buddy Mode</b><span>Only on when you turn it on</span></div>${tg(S.buddy,'buddy')}</div>
  <div style="margin-top:10px;background:var(--bg);border-radius:16px;padding:12px"><div class="tag">What your buddies see</div><div style="font-size:15px;font-weight:700;margin-top:6px">${!S.buddy?'Ryan is offline':S.onBreak?'Ryan paused ☕':'Ryan is walking'}</div>
- ${S.buddy?(()=>{const h=nextHazard(),sl=S.slope==='up'?'Uphill':S.slope==='down'?'Downhill':'Flat ground';return`<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:13.5px">
+ ${S.buddy?(()=>{const h=nextHazard(),tn=terrainNow(),sl=tn==='up'?'Uphill':tn==='down'?'Downhill':'Flat ground';return`<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:13.5px">
   <div style="display:flex;gap:8px;align-items:center">${I('pin',16,C.teal)}<span><b>${S.dest||'Nearby trails'}</b> · ${(S.steps*STEP_LEN).toFixed(0)} m in</span></div>
   <div style="display:flex;gap:8px;align-items:center">${I(sl==='Uphill'?'up':sl==='Downhill'?'down':'flat',16,C.teal)}<span>Terrain now: <b>${sl}</b></span></div>
   ${h?`<div style="display:flex;gap:8px;align-items:center">${I(ICON[h.type]||'alert',16,HCOL[h.type])}<span>Next: <b>${h.label}</b> in ${Math.round(ahead(h))} m</span></div>`:''}</div>`;})():''}</div>
