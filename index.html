@@ -286,7 +286,7 @@ function climbCheck(t,dz,dd){const gap=t-(NAV.lastSw||-1e9);NAV.lastSw=t;if(S.mo
  else if(S.sensUp){const keep=dz>0.1&&dz<1.6;   // once climbing, a slower or shorter step still counts
   if(keep)NAV.noClimb=0;else if(++NAV.noClimb>=2)setClimb(false);}}
 function setClimb(on){if(on===!!S.sensUp)return;S.sensUp=on;NAV.noClimb=0;
- if(on){speak('Uphill. Short steps, use the rail.',0);toast('Uphill · climbing');try{navigator.vibrate&&navigator.vibrate([300,150,300]);}catch(e){}}
+ if(on){speak('Uphill. Short steps, use the rail.',0);toast('Uphill · climbing');buzz();}
  else S.climbEnd=Date.now();
  S.terrainLog.push({t:clk,s:on?'up':'flat'});refreshLive();}
 function classifyTerrain(){
@@ -300,10 +300,14 @@ function classifyTerrain(){
  const need=Math.abs(g)>0.15?2:3;          // steep: 2 strides in agreement, gentle: 3
  if(NAV.pendN>=need)setSlopeState(k);}
 let clk=0,lastEvT=0;
+// iPhone/iPad: Safari can report gravity with the opposite sign to Android Chrome. We check it once during
+// the still part of calibration (the phone stands upright in the sock) and flip it if needed.
+const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+let ACC_SIGN=1;
 function onMotion(e){
- const g=e.accelerationIncludingGravity;if(!g||g.x==null)return;sensorsSeen=true;
+ const g0r=e.accelerationIncludingGravity;if(!g0r||g0r.x==null)return;sensorsSeen=true;const g={x:ACC_SIGN*g0r.x,y:ACC_SIGN*g0r.y,z:ACC_SIGN*g0r.z};
  const now=performance.now();let dt=(now-lastEvT)/1000;lastEvT=now;
- if(!(dt>0.002&&dt<0.1))dt=(e.interval>1&&e.interval<100?e.interval:10)/1000;   // first event or burst
+ if(!(dt>0.002&&dt<0.1))dt=(e.interval>1&&e.interval<100?e.interval:e.interval>0.001&&e.interval<0.1?e.interval*1000:10)/1000;   // first event or burst (iPhone reports seconds, Android ms)
  clk=clk?clk+dt*1000:now;const t=clk;
  const r=e.rotationRate||{};
  const gyro=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);         // deg/s
@@ -410,7 +414,9 @@ function startBreak(min){S.onBreak=true;S.breakUntil=Date.now()+min*60000;S.brea
 
 /* ================= audio ================= */
 let actx=null;
-function chime(){try{actx=actx||new AudioContext();const t=actx.currentTime;[[880,0],[1318.5,.18]].forEach(([f,d])=>{const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;g.gain.setValueAtTime(0,t+d);g.gain.linearRampToValueAtTime(.2,t+d+.02);g.gain.exponentialRampToValueAtTime(.001,t+d+.6);o.connect(g).connect(actx.destination);o.start(t+d);o.stop(t+d+.65);});}catch(e){}}
+function buzz(){if(navigator.vibrate){try{navigator.vibrate([300,150,300]);return;}catch(e){}}
+ try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const t=actx.currentTime;[0,.45].forEach(d=>{const o=actx.createOscillator(),g=actx.createGain();o.type='square';o.frequency.value=180;g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.25,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.3);o.connect(g).connect(actx.destination);o.start(t+d);o.stop(t+d+.32);});}catch(e){}}
+function chime(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const t=actx.currentTime;[[880,0],[1318.5,.18]].forEach(([f,d])=>{const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;g.gain.setValueAtTime(0,t+d);g.gain.linearRampToValueAtTime(.2,t+d+.02);g.gain.exponentialRampToValueAtTime(.001,t+d+.6);o.connect(g).connect(actx.destination);o.start(t+d);o.stop(t+d+.65);});}catch(e){}}
 function speak(m,delay=500){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(m);u.lang='en-US';u.rate=.95;setTimeout(()=>speechSynthesis.speak(u),delay);}catch(e){}}
 
 /* ================= emergency ================= */
@@ -618,7 +624,7 @@ function joinGroup(code,by,name){ensurePerson(by);const others=['Emma','Jake'].f
 let joinTimers=[];
 function createGroup(){joinTimers.forEach(clearTimeout);S.trek={code:'SOLE-'+(1000+Math.floor(Math.random()*9000)),name:'Saturday hike',admin:'You',members:[],vis:{}};S.msgs=[];S.showQR=true;loadQR();
  ['Emma','Jake','Linh'].forEach((k,i)=>joinTimers.push(setTimeout(()=>{if(!S.trek||S.trek.admin!=='You'||S.trek.members.includes(k))return;S.trek.members.push(k);S.trek.vis[k]='loc';toast(`${k} joined`);if(tab==='buddy')render();},2500+i*2200)));}
-/* ---- scanning: real QR reading where the browser has BarcodeDetector (Android Chrome) ---- */
+/* ---- scanning: real QR reading — BarcodeDetector on Android Chrome, jsQR on iPhone ---- */
 let scanStream=null,scanTimer=null;
 async function startScan(){const o=document.getElementById('overlay');
  o.innerHTML=`<div class="over" style="background:#000;color:#fff;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 24px) 20px 28px"><b style="font-size:18px">Scan the group code</b>
@@ -627,7 +633,13 @@ async function startScan(){const o=document.getElementById('overlay');
  try{scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const v=document.getElementById('scanV');if(v)v.srcObject=scanStream;}catch(e){}
  if('BarcodeDetector' in window){const bd=new BarcodeDetector({formats:['qr_code']});
   scanTimer=setInterval(async()=>{const v=document.getElementById('scanV');if(!v||v.readyState<2)return;try{const r=await bd.detect(v);if(r.length){const u=new URL(r[0].rawValue,location.href);const c=u.searchParams.get('join');if(c){stopScan();joinGroup(c,u.searchParams.get('by')||'Admin',u.searchParams.get('g'));render();}}}catch(e){}},350);}
- else scanTimer=setTimeout(()=>{stopScan();joinGroup('SOLE-4821','Linh','River Valley tour');render();},2500);}   // prototype: pretend we read Linh's code
+ else{   // iPhone Safari: no BarcodeDetector, so read the camera frames with jsQR
+  const go=()=>{const cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});
+   scanTimer=setInterval(()=>{const v=document.getElementById('scanV');if(!v||v.readyState<2||!v.videoWidth)return;
+    const w=480,h=Math.round(w*v.videoHeight/v.videoWidth);cv.width=w;cv.height=h;cx.drawImage(v,0,0,w,h);
+    const r=window.jsQR&&jsQR(cx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});
+    if(r&&r.data){try{const u=new URL(r.data,location.href);const c=u.searchParams.get('join');if(c){stopScan();joinGroup(c,u.searchParams.get('by')||'Admin',u.searchParams.get('g'));render();}}catch(e){}}},300);};
+  if(window.jsQR)go();else{const sc=document.createElement('script');sc.src='jsqr.js';sc.onload=go;sc.onerror=()=>{toast('Could not load the scanner. Use your Camera app to scan the code.');};document.head.appendChild(sc);}}}
 function stopScan(){clearInterval(scanTimer);clearTimeout(scanTimer);if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}document.getElementById('overlay').innerHTML='';renderOverlay();}
 function trekHTML(){const t=S.trek;
  if(!t)return`<div class="card" style="text-align:center;padding:22px"><span style="width:64px;height:64px;border-radius:20px;background:#E3EFEE;display:inline-flex;align-items:center;justify-content:center">${I('buddy',32,C.teal)}</span>
@@ -852,13 +864,21 @@ function demoSheet(open){const s=document.getElementById('sheet');s.classList.to
  <div class="card" style="margin-top:14px;box-shadow:none;background:var(--bg)"><div class="tag" style="margin-bottom:8px">Live sensor data</div><div class="debug"><span>Forward tilt</span><span id="dP">${live.pitch.toFixed(0)}°</span><span>Side tilt</span><span id="dR">${live.roll.toFixed(0)}°</span><span>Rotation</span><span id="dG">${live.gyro.toFixed(0)}°/s</span><span>Impact</span><span id="dA">${live.g.toFixed(1)} g</span><span>Last stride rise / length</span><span id="dZ">${(live.dz*100).toFixed(0)} cm / ${live.dd.toFixed(2)} m</span><span>Ground grade (3 strides)</span><span id="dS">${(NAV.grade*100).toFixed(0)}%</span><span>Side wobble (4 steps)</span><span id="dU">${live.unev.toFixed(1)}°</span><span>Slide accel (130 ms)</span><span id="dJ">${(live.slideAvg||0).toFixed(1)} m/s²</span><span>Re-acceleration after landing (peak)</span><span id="dK">${live.slideMax.toFixed(2)} m/s</span></div><p class="small" style="margin-top:8px">Each stride is measured planted-to-planted (ZUPT), so the swing arc cancels. Uphill/downhill when the grade over the last 3 strides is above 5% (3 strides must agree; 2 if steeper than 15%). Ice can't be sensed directly: it is announced from hazards other hikers reported and from places where slips were detected. Uneven ground when side wobble &gt; 5°. Slip when, after the foot has landed, it speeds up again by ≥ 0.8 m/s with Earth-horizontal acceleration ≥ ${SLIP_TH} m/s² over 130 ms and little rotation (research band ${SLIP_LOW}–${SLIP_HIGH} m/s², Iraqi et al. 2018).</p></div>`;}
 
 /* ================= start / sensors ================= */
-async function start(){S.started=true;if(S.pendingJoin){joinGroup(...S.pendingJoin);S.pendingJoin=null;}S.startT=Date.now();S.eta=Date.now()+40*60000;
+function unlockAudio(){   // iOS only lets a page talk/beep if the first sound starts inside a tap
+ try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}
+ try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}}
+async function start(){
+ // iPhone: ask for Motion & Orientation access FIRST, while we are still inside the tap
+ const perm=[];try{if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission)perm.push(DeviceMotionEvent.requestPermission());}catch(e){}
+ try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission)perm.push(DeviceOrientationEvent.requestPermission());}catch(e){}
+ unlockAudio();
+ S.started=true;if(S.pendingJoin){joinGroup(...S.pendingJoin);S.pendingJoin=null;}S.startT=Date.now();S.eta=Date.now()+40*60000;
  try{navigator.geolocation&&navigator.geolocation.watchPosition(p=>{S.fix={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy,t:Date.now()};},()=>{},{enableHighAccuracy:true,maximumAge:5000});}catch(e){}
  try{navigator.getBattery&&navigator.getBattery().then(b=>{S.batLevel=b.level;b.addEventListener('levelchange',()=>{S.batLevel=b.level;});});}catch(e){}
-try{actx=actx||new AudioContext();await actx.resume();}catch(e){}
- try{if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission)await DeviceMotionEvent.requestPermission();}catch(e){}
+ try{const r=await Promise.all(perm);if(r.some(x=>x!=='granted'))toast('Motion access is off. Close this tab, open the app again and tap Allow.');}catch(e){toast('Motion access is off. Close this tab, open the app again and tap Allow.');}
  window.addEventListener('devicemotion',onMotion);
- const ori=e=>{if(e.beta!=null)devBeta=e.beta;if(e.alpha!=null&&(e.absolute||e.type==='deviceorientationabsolute'))heading=(360-e.alpha)%360;};
+ const ori=e=>{if(e.beta!=null)devBeta=e.beta;if(e.webkitCompassHeading!=null)heading=e.webkitCompassHeading;   // iPhone compass
+  else if(e.alpha!=null&&(e.absolute||e.type==='deviceorientationabsolute'))heading=(360-e.alpha)%360;};
  window.addEventListener('deviceorientationabsolute',ori);window.addEventListener('deviceorientation',ori);
  try{wakeLock=await navigator.wakeLock.request('screen');}catch(e){}
  calibrate();}
@@ -866,12 +886,15 @@ const setCalN=n=>{const e=document.getElementById('calN');if(e&&n>0)e.firstChild
 function calibrate(){calibBuf={x:0,y:0,z:0,n:0,gx:0,gy:0,gz:0,skip:false};calibPhase='still';speak('Calibrating. Stand still.',100);let n=3;renderOverlay();
  const iv=setInterval(()=>{n--;setCalN(n);if(n>0)return;clearInterval(iv);
   const ok0=calibBuf.n>5, g0=ok0?norm([calibBuf.x,calibBuf.y,calibBuf.z]):[0,0,1];
-  const f0=ok0?[calibBuf.x/calibBuf.n,calibBuf.y/calibBuf.n,calibBuf.z/calibBuf.n]:[0,0,9.81], gb=ok0?[calibBuf.gx/calibBuf.n,calibBuf.gy/calibBuf.n,calibBuf.gz/calibBuf.n]:[0,0,0];
+  let f0=ok0?[calibBuf.x/calibBuf.n,calibBuf.y/calibBuf.n,calibBuf.z/calibBuf.n]:[0,0,9.81];
+  if(ok0&&IS_IOS){const dom=f0.reduce((a,v)=>Math.abs(v)>Math.abs(a)?v:a,0);if(dom<0){ACC_SIGN=-ACC_SIGN;f0=f0.map(v=>-v);}}   // upright/face-up should read +g
+  const gs=ok0?norm(f0):[0,0,1];
+  const gb=ok0?[calibBuf.gx/calibBuf.n,calibBuf.gy/calibBuf.n,calibBuf.gz/calibBuf.n]:[0,0,0];
   calibBuf={x:0,y:0,z:0,n:0,gx:0,gy:0,gz:0,skip:true};calibPhase='lean';renderOverlay();
   speak(S.mount==='sock'?'Now bend your knee forward and hold.':'Now lift your toes and hold.',100);
   let m=3;const iv2=setInterval(()=>{m--;setCalN(m);if(m===2)calibBuf.skip=false;if(m>0)return;clearInterval(iv2);
    const g1=calibBuf.n>5?norm([calibBuf.x,calibBuf.y,calibBuf.z]):null;
-   calib=buildCalib(g0,g1);calibBuf=null;calibPhase=null;navInit(f0,gb);toast('Walk about 10 steps on flat ground to finish setup');speak('Now walk about ten steps on flat ground.');S.stancePitch=[];S.stanceRoll=[];
+   calib=buildCalib(gs,g1);calibBuf=null;calibPhase=null;navInit(f0,gb);toast('Walk about 10 steps on flat ground to finish setup');speak('Now walk about ten steps on flat ground.');S.stancePitch=[];S.stanceRoll=[];
    renderOverlay();render();
    if(!sensorsSeen)toast('No motion sensors found. Use the Demo button.');
    else{speak(calib.learned?'SoleMate is ready. Start walking.':'I could not feel the lean, so I used default directions. You can recalibrate in Demo.',100);if(!calib.learned)toast('Lean not detected · using default directions (Demo → Recalibrate)');}},1000);},1000);}
