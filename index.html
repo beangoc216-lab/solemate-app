@@ -136,7 +136,7 @@ const I=(k,s=22,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0
 const SOLE='M100 12C150 12 176 62 173 122C170 172 150 202 150 252C150 302 166 342 161 392C156 442 131 458 100 458C69 458 47 442 44 397C41 352 54 302 51 252C49 202 29 162 29 112C29 52 54 12 100 12Z';
 
 /* ================= state ================= */
-function fresh(){return{trek:{code:'SOLE-4821',members:['Emma','Jake']},ob:0,dest:null,voice:true,msgs:[{id:1,from:'Emma',text:'Icy patch by the bridge!',pos:(30+PEOPLE.Emma.d*.6)%60},{id:2,from:'Jake',text:'Waiting at the top',pos:(30+PEOPLE.Jake.d*.6)%60}],mapPerson:null,breakUntil:0,eta:0,fix:null,batLevel:null,foot:'right',mount:'shoe',started:false,steps:0,strides:[],strikes:{heel:0,mid:0,fore:0},impacts:[],pron:[],stancePitch:[],
+function fresh(){return{trek:null,showQR:false,ob:0,dest:null,voice:true,msgs:[],mapPerson:null,breakUntil:0,eta:0,fix:null,batLevel:null,foot:'right',mount:'shoe',started:false,steps:0,strides:[],strikes:{heel:0,mid:0,fore:0},impacts:[],pron:[],stancePitch:[],
  lastStrike:'—',lastImpact:0,stanceRoll:[],paused:false,uneven:0,lastUneven:0,slope:'flat',slopeForced:null,slips:0,offset:0,sharing:true,alertMode:'earbuds',buddy:true,
  buddies:{Emma:true,Mom:true,Jake:false},alertsSent:[],banner:null,pulseId:null,
  hazards:[{id:1,pos:14,type:'ice',label:'Black ice',reports:8,lap:-1},{id:2,pos:34,type:'slope',label:'Steep slope',reports:5,lap:-1}],nextId:3,
@@ -447,7 +447,7 @@ function mapPeople(){const mem=S.trek?S.trek.members:[];
 function mapPersonCard(){const k=S.mapPerson;if(!k||!S.trek||!S.trek.members.includes(k))return'';
  return`<div class="card"><div class="lrow" style="padding:0"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div class="tx"><b>${k}</b><span>${memberDist(k)} m away</span></div><button class="pill soft" data-act="person-close" style="padding:8px">${I('x',14)}</button></div>
  <div class="row" style="margin-top:12px;flex-wrap:nowrap"><button class="btn sm" data-act="msg-${k}" style="flex:1;padding:11px">Message</button><button class="btn sm dark" data-act="find-${k}" style="flex:1;padding:11px">${I('ar',15,'#fff')} Find with camera</button></div></div>`;}
-function groupBar(){if(!S.trek.members.length)return`<button class="card lrow" data-tab="buddy" style="text-align:left">${I('buddy',20,C.teal)}<div class="tx"><b>See your friends here</b><span>Add people to your group</span></div><span class="small">›</span></button>`;
+function groupBar(){if(!S.trek||!S.trek.members.length)return`<button class="card lrow" data-tab="buddy" style="text-align:left">${I('buddy',20,C.teal)}<div class="tx"><b>See your friends here</b><span>Create or join a group</span></div><span class="small">›</span></button>`;
  return`<button class="btn full" data-act="msg-group" style="display:flex;align-items:center;justify-content:center;gap:8px">${I('pin',16)} Message the group</button>`;}
 function mapHTML(){const p=at(pos());
  const pins=S.hazards.map(h=>{const q=at(h.pos),col=HCOL[h.type]||C.red;return`<g data-act="pin-${h.id}" style="cursor:pointer">${S.pulseId===h.id?`<circle class="pulse" cx="${q[0]}" cy="${q[1]}" r="12" fill="${col}"/>`:''}${S.mapSel===h.id?`<circle cx="${q[0]}" cy="${q[1]}" r="17" fill="none" stroke="${col}" stroke-width="3"/>`:''}<circle cx="${q[0]}" cy="${q[1]}" r="20" fill="transparent"/><circle cx="${q[0]}" cy="${q[1]}" r="11" fill="${col}" stroke="#fff" stroke-width="3"/><text x="${q[0]}" y="${q[1]+4}" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">!</text></g>`}).join('');
@@ -508,16 +508,53 @@ function reportHTML(){const a=analysis();
  <div class="card"><div class="tag">Tip for tomorrow</div><div style="font-weight:700;margin-top:6px;font-size:15px">${tip}</div></div>
  ${doctorHTML()}<div style="height:60px"></div>`;}
 const memberDist=k=>Math.max(0,Math.round(PEOPLE[k].d-S.steps*STEP_LEN*.5));
-function trekHTML(){const t=S.trek;const avail=Object.keys(PEOPLE).filter(k=>!t.members.includes(k));
- return`<div class="card"><div class="hdr"><div><div style="font-size:18px;font-weight:800">My group</div><div class="small">They see your footprints · you see theirs</div></div><button class="pill soft" data-act="invite">Invite</button></div>
- <div style="margin-top:8px">${t.members.map(k=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div class="tx"><b>${k}</b><span>${memberDist(k)} m away</span></div><button class="btn sm dark" data-act="find-${k}">${I('ar',14,'#fff')} Find</button><button class="pill soft" data-act="rm-${k}" aria-label="Remove ${k}" style="padding:8px">${I('x',14)}</button></div>`).join('')||'<p class="small" style="padding:4px 0">No one yet.</p>'}</div>
- ${S.addOpen?`<div style="border-top:1px solid var(--soft);margin-top:8px;padding-top:8px">${avail.map(k=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div class="tx"><b>${k}</b><span>${PEOPLE[k].rel}</span></div><button class="btn sm" data-act="add-${k}">${I('plus',14)} Add</button></div>`).join('')||'<p class="small">Everyone is in your group.</p>'}<button class="btn full" data-act="add-close" style="margin-top:6px">Done</button></div>`:`<button class="btn full" data-act="add-open" style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px">${I('plus',16)} Add people</button>`}</div>`;}
+/* ================= GROUP: create with a QR code, others scan to join =================
+   The creator is the Admin (e.g. the tour guide). Each person decides, per member,
+   what that member can see of them: Hidden / Location only / Footsteps (AR).            */
+const VIS=[['hide','Hidden'],['loc','Location'],['foot','Footsteps']];
+const joinURL=t=>`${location.origin}${location.pathname}?join=${encodeURIComponent(t.code)}&by=${encodeURIComponent(t.admin==='You'?'Ryan':t.admin)}&g=${encodeURIComponent(t.name)}`;
+let qrLib=null;
+function loadQR(){if(qrLib||window.qrcode)return Promise.resolve(qrLib=window.qrcode);
+ return new Promise(res=>{const sc=document.createElement('script');sc.src='qrcode.js';sc.onload=()=>{qrLib=window.qrcode;res(qrLib);if(tab==='buddy')render();};sc.onerror=()=>res(null);document.head.appendChild(sc);});}
+function qrSVG(text){const q=qrLib||window.qrcode;if(!q){loadQR();return`<div style="width:180px;height:180px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center" class="small">Loading QR…</div>`;}
+ const qr=q(0,'M');qr.addData(text);qr.make();return qr.createSvgTag({cellSize:5,margin:2,scalable:true}).replace('<svg ','<svg style="width:190px;height:190px;display:block" ');}
+function ensurePerson(n){if(!PEOPLE[n])PEOPLE[n]={c:'#0F766E',rel:'Group admin',d:20,b:0};}
+function joinGroup(code,by,name){ensurePerson(by);const others=['Emma','Jake'].filter(x=>x!==by);
+ S.trek={code,name:name||'Group activity',admin:by,members:[by,...others],vis:{[by]:'loc',Emma:'loc',Jake:'loc'}};
+ S.msgs=[{id:1,from:by,text:'Welcome! Follow my footsteps',pos:(pos()+PEOPLE[by].d*.6)%TRAIL_M}];toast(`You joined ${S.trek.name}`);}
+let joinTimers=[];
+function createGroup(){joinTimers.forEach(clearTimeout);S.trek={code:'SOLE-'+(1000+Math.floor(Math.random()*9000)),name:'Saturday hike',admin:'You',members:[],vis:{}};S.msgs=[];S.showQR=true;loadQR();
+ ['Emma','Jake','Linh'].forEach((k,i)=>joinTimers.push(setTimeout(()=>{if(!S.trek||S.trek.admin!=='You'||S.trek.members.includes(k))return;S.trek.members.push(k);S.trek.vis[k]='loc';toast(`${k} joined`);if(tab==='buddy'||tab==='map')render();},2500+i*2200)));}
+/* ---- scanning: real QR reading where the browser has BarcodeDetector (Android Chrome) ---- */
+let scanStream=null,scanTimer=null;
+async function startScan(){const o=document.getElementById('overlay');
+ o.innerHTML=`<div class="over" style="background:#000;color:#fff;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 24px) 20px 28px"><b style="font-size:18px">Scan the group code</b>
+  <div style="position:relative;width:260px;height:260px;border-radius:24px;overflow:hidden;box-shadow:0 0 0 3px #fff"><video id="scanV" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover"></video></div>
+  <p class="small" style="color:#ccc">Point at the QR code on the admin’s phone</p><button class="btn full" style="background:#fff;color:#000" data-act="scan-cancel">Cancel</button></div>`;
+ try{scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const v=document.getElementById('scanV');if(v)v.srcObject=scanStream;}catch(e){}
+ if('BarcodeDetector' in window){const bd=new BarcodeDetector({formats:['qr_code']});
+  scanTimer=setInterval(async()=>{const v=document.getElementById('scanV');if(!v||v.readyState<2)return;try{const r=await bd.detect(v);if(r.length){const u=new URL(r[0].rawValue,location.href);const c=u.searchParams.get('join');if(c){stopScan();joinGroup(c,u.searchParams.get('by')||'Admin',u.searchParams.get('g'));render();}}}catch(e){}},350);}
+ else scanTimer=setTimeout(()=>{stopScan();joinGroup('SOLE-4821','Linh','River Valley tour');render();},2500);}   // prototype: pretend we read Linh's code
+function stopScan(){clearInterval(scanTimer);clearTimeout(scanTimer);if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}document.getElementById('overlay').innerHTML='';renderOverlay();}
+function trekHTML(){const t=S.trek;
+ if(!t)return`<div class="card" style="text-align:center;padding:22px"><span style="width:64px;height:64px;border-radius:20px;background:#E3EFEE;display:inline-flex;align-items:center;justify-content:center">${I('buddy',32,C.teal)}</span>
+  <div style="font-size:19px;font-weight:800;margin:10px 0 4px">Walk together</div><div class="small" style="margin-bottom:16px">Create a group, or scan a code to join one.</div>
+  <button class="btn dark full" data-act="grp-create">Create a group</button><button class="btn full" data-act="grp-scan" style="margin-top:8px">Scan to join</button></div>`;
+ const iAmAdmin=t.admin==='You';const adminBadge=`<span class="pill" style="padding:3px 8px;font-size:10.5px;background:${C.ink};color:#fff;box-shadow:none">Admin</span>`;
+ const row=k=>{const v=t.vis[k]||'loc';return`<div style="padding:10px 0;border-top:1px solid var(--soft)"><div class="lrow" style="padding:0"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div class="tx"><b style="display:flex;align-items:center;gap:6px">${k} ${t.admin===k?adminBadge:''}</b><span>${memberDist(k)} m away</span></div>
+   <button class="btn sm" data-act="find-${k}" style="padding:7px 10px">${I('ar',14)}</button>${iAmAdmin?`<button class="pill soft" data-act="rm-${k}" aria-label="Remove ${k}" style="padding:8px">${I('x',14)}</button>`:''}</div>
+   <div class="seg" style="margin-top:8px;padding:3px">${VIS.map(([m,l])=>`<button data-act="vis-${k}-${m}" class="${v===m?'sel':''}" style="padding:7px 4px;font-size:12px">${l}</button>`).join('')}</div></div>`;};
+ return`<div class="card"><div class="hdr"><div><div style="font-size:18px;font-weight:800">${t.name}</div><div class="small">Code <b style="color:var(--ink)">${t.code}</b> · ${t.members.length+1} people</div></div><button class="pill soft" data-act="grp-qr">${I('ar',14)} ${S.showQR?'Hide':'QR'}</button></div>
+ ${S.showQR?`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin:14px 0 4px">${qrSVG(joinURL(t))}<div class="small">Scan with the phone camera to join</div></div>`:''}
+ <div class="lrow" style="margin-top:10px"><div class="av" style="background:var(--ink)">R</div><div class="tx"><b style="display:flex;align-items:center;gap:6px">Ryan (you) ${iAmAdmin?adminBadge:''}</b><span>${iAmAdmin?'You created this group':'Member'}</span></div></div>
+ ${t.members.length?`<div class="tag" style="margin:10px 0 2px">What each person sees of you</div>${t.members.map(row).join('')}`:`<p class="small" style="padding:8px 0">Waiting for people to scan…</p>`}
+ <button class="btn full" data-act="grp-leave" style="margin-top:12px;color:var(--red)">${iAmAdmin?'End group':'Leave group'}</button></div>`;}
 function buddyHTML(){const a=analysis();return`<div class="hdr"><div><div class="hT">Group</div></div></div>
  ${trekHTML()}
  <div class="card"><div class="lrow" style="padding:0"><div class="tx"><b style="font-size:16px">Buddy Mode</b><span>Only on when you turn it on</span></div>${tg(S.buddy,'buddy')}</div>
  <div style="opacity:${S.buddy?1:.45};margin-top:10px;background:var(--bg);border-radius:16px;padding:12px"><div class="tag">What your buddies see</div><div style="font-size:15px;font-weight:700;margin-top:6px">${!S.buddy?'Ryan is offline':S.onBreak?'Ryan paused ☕':'Ryan is on the river valley trail'}</div>
  ${S.buddy?`<div class="row" style="margin-top:8px"><span class="pill"><span class="d" style="background:${a.sc}"></span>${a.status}</span><span class="pill">${(S.steps*STEP_LEN).toFixed(0)} m</span><span class="pill"><span class="d" style="background:${S.slips?C.orange:C.green}"></span>${S.slips?S.slips+' slip'+(S.slips>1?'s':''):'No slips'}</span></div>`:''}</div>
- <div class="ctitle" style="margin-top:12px">Who can see you</div>${[['Emma','Emma (partner)','Location + foot status'],['Mom','Mom','Location only'],['Jake','Jake','Friend']].map(([k,n,s])=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}">${n[0]}</div><div class="tx"><b>${n}</b><span>${S.buddies[k]?s:'Off'}</span></div>${tg(S.buddies[k],'b-'+k)}</div>`).join('')}</div>
+ <div class="ctitle" style="margin-top:12px">Family <span class="small">· outside the group</span></div>${[['Emma','Emma (partner)','Location + foot status'],['Mom','Mom','Location only'],['Jake','Jake','Friend']].map(([k,n,s])=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}">${n[0]}</div><div class="tx"><b>${n}</b><span>${S.buddies[k]?s:'Off'}</span></div>${tg(S.buddies[k],'b-'+k)}</div>`).join('')}</div>
  <div class="card" style="box-shadow:0 0 0 2px ${C.red} inset,var(--sh)"><div class="ctitle" style="color:${C.red};font-size:16px">Safety</div>
  <div class="small" style="margin-bottom:6px">We ask you first. No answer → we text Emma &amp; Mom your exact location.</div>
  ${[['alert','Hard fall','20 s → family, 45 s → 911'],['ice','Slip, then no movement','20 s → family'],['run','Stopped 90 s → “Did you fall?”','30 s → family, 2 min → 911'],['pause','Pause runs over','30 s → family'],['pin','Late to destination','1 min → family'],['phone','Battery under 10%','Last location → family']].map(([i,n,r])=>`<div class="lrow"><span style="width:34px;height:34px;border-radius:11px;background:#FBE9E7;display:flex;align-items:center;justify-content:center;flex:none">${I(i,17,C.red)}</span><div class="tx"><b style="font-size:14px">${n}</b><span>${r}</span></div></div>`).join('')}
@@ -609,7 +646,7 @@ async function startXR(){const k=S.arTarget;if(!k)return;let THREE;
 function arHTML(){const mem=S.trek?S.trek.members:[];if(!S.arTarget||!mem.includes(S.arTarget))S.arTarget=mem[0]||null;const k=S.arTarget;
  if(xrOK===null){xrOK=false;try{navigator.xr&&navigator.xr.isSessionSupported('immersive-ar').then(v=>{xrOK=!!v;if(tab==='ar')render();}).catch(()=>{});}catch(e){}}
  const top=`<div style="position:absolute;top:calc(env(safe-area-inset-top) + 14px);left:14px;right:14px;display:flex;gap:8px;overflow-x:auto"><span class="pill dark">AR</span>${mem.map(m=>`<button class="pill ${m===k?'dark':''}" data-act="ar-${m}"><span class="d" style="background:${PEOPLE[m].c}"></span>${m}</button>`).join('')}<button class="pill" data-tab="buddy">${I('plus',14)} Group</button></div>`;
- if(!k)return`<div class="arwrap"><video id="cam" autoplay playsinline muted></video>${top}<div style="position:absolute;left:20px;right:20px;top:30%;background:#fff;border-radius:22px;padding:22px;text-align:center;box-shadow:var(--sh)"><b style="font-size:19px">Find your friends</b><p class="small" style="margin:6px 0 14px">Add people to your group to see their footprints.</p><button class="btn dark full" data-tab="buddy">Add people</button></div></div>`;
+ if(!k)return`<div class="arwrap"><video id="cam" autoplay playsinline muted></video>${top}<div style="position:absolute;left:20px;right:20px;top:30%;background:#fff;border-radius:22px;padding:22px;text-align:center;box-shadow:var(--sh)"><b style="font-size:19px">Find your friends</b><p class="small" style="margin:6px 0 14px">Create or join a group to see their footprints.</p><button class="btn dark full" data-tab="buddy">Go to Group</button></div></div>`;
  return`<div class="arwrap"><video id="cam" autoplay playsinline muted></video><canvas id="arCv" style="position:absolute;inset:0;width:100%;height:100%"></canvas>${top}
  <div style="position:absolute;top:calc(env(safe-area-inset-top) + 62px);left:0;right:0;display:flex;justify-content:center"><span class="pill" style="font-size:14px;padding:9px 14px"><span class="d" style="background:${PEOPLE[k].c}"></span><span id="vTarget">${k} · ${Math.max(0,Math.round(memberDist(k)-arWalk))} m</span><span style="opacity:.5">·</span><span id="vTurn">${heading===null?'Walk forward':'Turn to find '+k}</span></span></div>
  <div style="position:absolute;left:14px;right:14px;bottom:14px;background:#fff;border-radius:22px;padding:14px 16px;box-shadow:var(--sh)"><b style="font-size:15px">${k}’s footprints</b><div class="small">Point the camera at the ground and walk.</div>
@@ -666,7 +703,7 @@ function obDots(i){return`<div style="display:flex;gap:6px;justify-content:cente
 function startHTML(){const ob=S.ob||0;
  const wrap=(inner,btns)=>`<div class="over" style="background:var(--bg);justify-content:space-between;padding:calc(env(safe-area-inset-top) + 34px) 24px calc(env(safe-area-inset-bottom) + 26px);overflow-y:auto"><div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px">${inner}</div><div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-top:20px">${obDots(ob)}${btns}</div></div>`;
  const back=`<button class="btn full" style="background:none;color:var(--mute);padding:6px" data-act="ob-back">Back</button>`;
- if(ob===0)return wrap(`<div class="tag">Prototype</div><h3 style="font-size:42px">SoleMate</h3>${insoleArt()}<p style="font-size:18px;font-weight:700;max-width:290px;line-height:1.35">Your phone acts as the smart insole.</p><p class="small" style="max-width:280px">In the real product, the sensors are inside the insole.</p>
+ if(ob===0)return wrap(`${S.pendingJoin?`<div class="pill dark">${I('buddy',15,'#fff')} Joining ${S.pendingJoin[2]||'a group'} · admin ${S.pendingJoin[1]}</div>`:''}<div class="tag">Prototype</div><h3 style="font-size:42px">SoleMate</h3>${insoleArt()}<p style="font-size:18px;font-weight:700;max-width:290px;line-height:1.35">Your phone acts as the smart insole.</p><p class="small" style="max-width:280px">In the real product, the sensors are inside the insole.</p>
   <div class="row" style="justify-content:center">${[['flat','Terrain ahead'],['ice','Slip check'],['phone','Fall help']].map(([i,l])=>`<span class="pill">${I(i,15,C.teal)}${l}</span>`).join('')}</div>`,
   `<button class="btn dark full" style="font-size:16px;padding:16px" data-act="ob-next">Start</button>`);
  if(ob===1)return wrap(`<h3>Put your phone in your right sock</h3>${footArt()}
@@ -695,7 +732,7 @@ function demoSheet(open){const s=document.getElementById('sheet');s.classList.to
  <div class="card" style="margin-top:14px;box-shadow:none;background:var(--bg)"><div class="tag" style="margin-bottom:8px">Live sensor data</div><div class="debug"><span>Forward tilt</span><span id="dP">${live.pitch.toFixed(0)}°</span><span>Side tilt</span><span id="dR">${live.roll.toFixed(0)}°</span><span>Rotation</span><span id="dG">${live.gyro.toFixed(0)}°/s</span><span>Impact</span><span id="dA">${live.g.toFixed(1)} g</span><span>Last stride rise / length</span><span id="dZ">${(live.dz*100).toFixed(0)} cm / ${live.dd.toFixed(2)} m</span><span>Ground grade (3 strides)</span><span id="dS">${(NAV.grade*100).toFixed(0)}%</span><span>Side wobble (4 steps)</span><span id="dU">${live.unev.toFixed(1)}°</span><span>Slide accel (130 ms)</span><span id="dJ">${(live.slideAvg||0).toFixed(1)} m/s²</span><span>Re-acceleration after landing (peak)</span><span id="dK">${live.slideMax.toFixed(2)} m/s</span></div><p class="small" style="margin-top:8px">Each stride is measured planted-to-planted (ZUPT), so the swing arc cancels. Uphill/downhill when the grade over the last 3 strides is above 5% (3 strides must agree; 2 if steeper than 15%). Ice can't be sensed directly: it is announced from hazards other hikers reported and from places where slips were detected. Uneven ground when side wobble &gt; 5°. Slip when, after the foot has landed, it speeds up again by ≥ 0.8 m/s with Earth-horizontal acceleration ≥ ${SLIP_TH} m/s² over 130 ms and little rotation (research band ${SLIP_LOW}–${SLIP_HIGH} m/s², Iraqi et al. 2018).</p></div>`;}
 
 /* ================= start / sensors ================= */
-async function start(){S.started=true;S.startT=Date.now();S.eta=Date.now()+40*60000;
+async function start(){S.started=true;if(S.pendingJoin){joinGroup(...S.pendingJoin);S.pendingJoin=null;}S.startT=Date.now();S.eta=Date.now()+40*60000;
  try{navigator.geolocation&&navigator.geolocation.watchPosition(p=>{S.fix={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy,t:Date.now()};},()=>{},{enableHighAccuracy:true,maximumAge:5000});}catch(e){}
  try{navigator.getBattery&&navigator.getBattery().then(b=>{S.batLevel=b.level;b.addEventListener('levelchange',()=>{S.batLevel=b.level;});});}catch(e){}
 try{actx=actx||new AudioContext();await actx.resume();}catch(e){}
@@ -794,10 +831,14 @@ document.getElementById('app').addEventListener('click',e=>{
  else if(a==='zout')S.mapZoom=Math.max(.7,+(S.mapZoom/1.4).toFixed(2));
  else if(a==='zme')centerMe();
  // group
- else if(a==='invite'){toast('Invite code SOLE-4821 copied');}
- else if(a==='add-open')S.addOpen=true;else if(a==='add-close')S.addOpen=false;
+ else if(a==='grp-create')createGroup();
+ else if(a==='grp-scan'){startScan();return;}
+ else if(a==='scan-cancel'){stopScan();return;}
+ else if(a==='grp-qr'){S.showQR=!S.showQR;if(S.showQR)loadQR();}
+ else if(a==='grp-leave'){toast(S.trek&&S.trek.admin==='You'?'Group ended':'You left the group');joinTimers.forEach(clearTimeout);S.trek=null;S.msgs=[];S.arTarget=null;S.mapPerson=null;}
+ else if(a.startsWith('vis-')){const[,k,m]=a.split('-');if(S.trek){S.trek.vis[k]=m;toast(m==='hide'?`${k} can’t see you`:m==='loc'?`${k} sees your location only`:`${k} sees your footsteps in AR`);}}
  else if(a.startsWith('add-')){const k=a.slice(4);if(S.trek&&!S.trek.members.includes(k)){S.trek.members.push(k);if(k==='Emma'&&!S.msgs.length)S.msgs.push({id:Date.now(),from:'Emma',text:'Icy patch by the bridge!',pos:(pos()+PEOPLE.Emma.d*.6)%TRAIL_M});toast(`${k} added · you see each other’s footprints`);}}
- else if(a.startsWith('rm-')){const k=a.slice(3);if(S.trek){S.trek.members=S.trek.members.filter(x=>x!==k);if(S.arTarget===k)S.arTarget=null;toast(`${k} removed · they no longer see you`);}}
+ else if(a.startsWith('rm-')){const k=a.slice(3);if(S.trek&&S.trek.admin==='You'){S.trek.members=S.trek.members.filter(x=>x!==k);delete S.trek.vis[k];if(S.arTarget===k)S.arTarget=null;toast(`${k} removed from the group`);}}
  else if(a.startsWith('find-')){S.arTarget=a.slice(5);arWalk=0;arSeen={};S.mapPerson=null;tab='ar';}
  // AR
  else if(a==='arx-pin'){S.msgs.push({id:Date.now(),from:'You',text:'📍 I’m here',pos:pos()});toast('Pin dropped · it shows on the group map');}
@@ -818,6 +859,7 @@ document.getElementById('app').addEventListener('click',e=>{
  else if(a==='d-reset'){const f=S.foot,mt=S.mount,dst=S.dest;S=fresh();S.foot=f;S.mount=mt;S.started=true;setDest(dst||'River Valley Trail');NAV.strides=[];NAV.pend=null;NAV.grade=0;demoSheet(false);closeCheck();}
  render();});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='msgIn'){e.preventDefault();document.querySelector('[data-act=compose-send]').click();return;}if(e.key==='Enter'&&e.target.id==='destIn'){e.preventDefault();document.querySelector('[data-act=dest-go]').click();}});
+(()=>{const u=new URLSearchParams(location.search);const c=u.get('join');if(c)S.pendingJoin=[c,u.get('by')||'Admin',u.get('g')];})();
 render();
 </script>
 </body>
