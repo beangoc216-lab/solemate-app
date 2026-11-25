@@ -636,7 +636,7 @@ function trekHTML(){const t=S.trek;
  const iAmAdmin=t.admin==='You';const adminBadge=`<span class="pill" style="padding:3px 8px;font-size:10.5px;background:${C.ink};color:#fff;box-shadow:none">Admin</span>`;
  const row=k=>{const v=t.vis[k]||'loc';return`<div style="padding:10px 0;border-top:1px solid var(--soft)"><div class="lrow" style="padding:0"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div class="tx"><b style="display:flex;align-items:center;gap:6px">${k} ${t.admin===k?adminBadge:''}</b><span>${memberDist(k)} m away</span></div>
    <button class="btn sm" data-act="msg-${k}" aria-label="Message ${k}" style="padding:7px 10px">${I('msg',14)}</button><button class="btn sm" data-act="find-${k}" aria-label="Find ${k} with camera" style="padding:7px 10px">${I('ar',14)}</button>${iAmAdmin?`<button class="pm" data-act="rm-${k}" aria-label="Remove ${k}">−</button>`:''}</div>
-   <div class="seg" style="margin-top:8px;padding:3px">${VIS.map(([m,l])=>`<button data-act="vis-${k}-${m}" class="${v===m?'sel':''}" style="padding:7px 4px;font-size:12px">${l}</button>`).join('')}</div></div>`;};
+   <div class="seg" role="group" aria-label="What ${k} can see of you" style="margin-top:8px;padding:3px">${VIS.map(([m,l])=>{const on=m==='hide'?v==='hide':v.includes(m);return`<button data-act="vis-${k}-${m}" aria-pressed="${on}" class="${on?'sel':''}" style="padding:7px 4px;font-size:12px">${m!=='hide'&&on?'✓ ':''}${l}</button>`}).join('')}</div></div>`;};
  return`<div class="card"><div class="hdr"><div><div style="font-size:18px;font-weight:800">${t.name}</div><div class="small">Code <b style="color:var(--ink)">${t.code}</b> · ${t.members.length+1} people</div></div><button class="pill soft" data-act="grp-qr">${I('ar',14)} ${S.showQR?'Hide':'QR'}</button></div>
  ${S.showQR?`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin:14px 0 4px">${qrSVG(joinURL(t))}<div class="small">Scan with the phone camera to join</div></div>`:''}
  <div class="lrow" style="margin-top:10px"><div class="av" style="background:var(--ink)">R</div><div class="tx"><b style="display:flex;align-items:center;gap:6px">Ryan (you) ${iAmAdmin?adminBadge:''}</b><span>${iAmAdmin?'You created this group':'Member'}</span></div></div>
@@ -961,8 +961,13 @@ document.getElementById('app').addEventListener('click',e=>{
  else if(a==='scan-cancel'){stopScan();return;}
  else if(a==='grp-qr'){S.showQR=!S.showQR;if(S.showQR)loadQR();}
  else if(a==='grp-leave'){toast(S.trek&&S.trek.admin==='You'?'Group ended':'You left the group');joinTimers.forEach(clearTimeout);S.trek=null;S.msgs=[];S.arTarget=null;S.mapPerson=null;}
- else if(a.startsWith('vis-')){const[,k,m]=a.split('-');if(S.trek){S.trek.vis[k]=m;toast(m==='hide'?`${k} can’t see you`:m==='loc'?`${k} sees your location only`:`${k} sees your footsteps in AR`);}}
- else if(a.startsWith('add-')){const k=a.slice(4);if(S.trek&&!S.trek.members.includes(k)){S.trek.members.push(k);S.trek.vis[k]='loc';if(k==='Emma'&&!S.msgs.length)S.msgs.push({id:Date.now(),from:'Emma',text:'Icy patch by the bridge!',pos:(pos()+PEOPLE.Emma.d*.6)%TRAIL_M});toast(`${k} added · you see each other’s footprints`);}}
+ else if(a.startsWith('vis-')){const[,k,m]=a.split('-');if(S.trek){
+  // Location and Footsteps can both be on. Hidden turns both off.
+  const v=S.trek.vis[k]||'loc';let loc=v.includes('loc'),foot=v.includes('foot');
+  if(m==='hide'){loc=false;foot=false;}else if(m==='loc')loc=!loc;else foot=!foot;
+  const nv=loc&&foot?'loc+foot':loc?'loc':foot?'foot':'hide';S.trek.vis[k]=nv;
+  toast(nv==='hide'?`${k} can’t see you`:nv==='loc'?`${k} sees your location`:nv==='foot'?`${k} sees your footsteps in AR`:`${k} sees your location and footsteps`);}}
+ else if(a.startsWith('add-')){const k=a.slice(4);if(S.trek&&!S.trek.members.includes(k)){S.trek.members.push(k);S.trek.vis[k]='loc+foot';if(k==='Emma'&&!S.msgs.length)S.msgs.push({id:Date.now(),from:'Emma',text:'Icy patch by the bridge!',pos:(pos()+PEOPLE.Emma.d*.6)%TRAIL_M});toast(`${k} added · you see each other’s footprints`);}}
  else if(a.startsWith('rm-')){const k=a.slice(3);if(S.trek&&S.trek.admin==='You'){S.trek.members=S.trek.members.filter(x=>x!==k);delete S.trek.vis[k];if(S.arTarget===k)S.arTarget=null;toast(`${k} removed from the group`);}}
  else if(a.startsWith('find-')){S.arTarget=a.slice(5);arWalk=0;arSeen={};S.mapPerson=null;S.tabHist.push(tab);tab='ar';}
  // AR
