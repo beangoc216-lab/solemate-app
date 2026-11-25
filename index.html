@@ -122,7 +122,6 @@ const ALERT_M=8;           // warn this many metres before a hazard
 const SLIP_AVG=13.6, SLIP_LOW=+(SLIP_AVG*0.9).toFixed(1), SLIP_HIGH=+(SLIP_AVG*1.1).toFixed(1);
 const SLIP_WIN=130;        // ms — the slip window measured in the study (20 ms -> 150 ms)
 let SLIP_TH=SLIP_LOW;      // m/s² (Demo → sensitivity can lower it for classroom tests)
-let slideBuf=[];
 const C={teal:'#12666B',red:'#DB4538',orange:'#F08F29',green:'#389E5C',blue:'#3B78D9',ink:'#121214'};
 const P={run:'<path d="M13 4a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/><path d="M7 21l3-6 3 2v5M10 15l1-6 4 3 3 1M8 9l3-1"/>',map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',report:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>',buddy:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c0-2.8-1.6-4.8-4-5.6"/>',ar:'<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3"/>',alert:'<path d="M12 3L2 20h20z"/><path d="M12 10v4M12 17h.01"/>',head:'<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',sliders:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'};
 Object.assign(P,{phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',pause:'<path d="M9 5v14M15 5v14"/>',pin:'<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',coach:'<path d="M12 3v3M5 6l2 2M19 6l-2 2"/><path d="M8 14a4 4 0 1 1 8 0c0 2-2 3-2 5h-4c0-2-2-3-2-5z"/><path d="M10 21h4"/>'});
@@ -135,11 +134,11 @@ const I=(k,s=22,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0
 const SOLE='M100 12C150 12 176 62 173 122C170 172 150 202 150 252C150 302 166 342 161 392C156 442 131 458 100 458C69 458 47 442 44 397C41 352 54 302 51 252C49 202 29 162 29 112C29 52 54 12 100 12Z';
 
 /* ================= state ================= */
-function fresh(){return{foot:'right',mount:'sock',started:false,steps:0,strides:[],strikes:{heel:0,mid:0,fore:0},impacts:[],pron:[],stancePitch:[],
+function fresh(){return{foot:'right',mount:'shoe',started:false,steps:0,strides:[],strikes:{heel:0,mid:0,fore:0},impacts:[],pron:[],stancePitch:[],
  lastStrike:'—',lastImpact:0,stanceRoll:[],paused:false,uneven:0,lastUneven:0,slope:'flat',slopeForced:null,slips:0,offset:0,sharing:true,alertMode:'earbuds',buddy:true,
  buddies:{Emma:true,Mom:true,Jake:false},alertsSent:[],banner:null,pulseId:null,
  hazards:[{id:1,pos:14,type:'ice',label:'Black ice',reports:8,lap:-1},{id:2,pos:34,type:'slope',label:'Steep slope',reports:5,lap:-1}],nextId:3,
- goal:8000,onBreak:false,trek:null,addOpen:false,arTarget:null,mapZoom:1,mapPan:[0,0],mapSel:null,safeRoute:false,period:'day',check:null,lastStepT:0,coachOn:true,heelRun:0,myTrail:true,startT:Date.now()}}
+ goal:8000,terrainLog:[],distM:0,stanceStartT:0,onBreak:false,trek:null,addOpen:false,arTarget:null,mapZoom:1,mapPan:[0,0],mapSel:null,safeRoute:false,period:'day',check:null,lastStepT:0,coachOn:true,heelRun:0,myTrail:true,startT:Date.now()}}
 let S=fresh(), tab='run', emer=null, bannerTimer=null, toastTimer=null, sensorsSeen=false, heading=null, arBear={}, dragMoved=false, camStream=null, wakeLock=null;
 const TRAIL_M=60;
 
@@ -155,62 +154,123 @@ function buildCalib(g0,g1){let f=null,learned=false;
  if(g1){const d=dot(g1,g0);const p=[g1[0]-d*g0[0],g1[1]-d*g0[1],g1[2]-d*g0[2]];if(Math.hypot(...p)>Math.sin(8/57.3)){f=norm(p);learned=true;}}
  if(!f){const ax=S.mount==='sock'?[0,0,1]:[0,1,0];const d=dot(ax,g0);f=norm([ax[0]-d*g0[0],ax[1]-d*g0[1],ax[2]-d*g0[2]]);}
  return{g0,f,s:norm(cross(g0,f)),learned};}
-const live={pitch:0,roll:0,gyro:0,g:1,lin:0,ground:0,unev:0,slideMax:0};
-let st='stance',swingStart=0,stillStart=0,stanceStart=0,buf=[],lastSlip=0,fallCand=0,tiltStill=0,stanceSamples=[],handT=0,flatT=0;
+const live={pitch:0,roll:0,gyro:0,g:1,lin:0,ground:0,unev:0,slideMax:0,dz:0,dd:0};
+const D2R=Math.PI/180;
+let buf=[],lastSlip=0,fallCand=0,tiltStill=0,stanceSamples=[],handT=0,flatT=0;
 const median=a=>{const b=[...a].sort((x,y)=>x-y);const m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;};
+/* ================= NAV engine: AHRS + ZUPT (same maths as terrain_pipeline.py) =================
+   1. Mahony AHRS tracks the phone's 3D attitude, so gravity is removed in the Earth frame at any tilt.
+   2. Quasi-still moments (foot planted) = zero velocity (ZUPT). Each swing between two of them is
+      integrated with linear drift removal -> true height change dz and distance dd of that stride.
+      Comparing planted moment to planted moment cancels the up-and-down arc of the swing.
+   3. Terrain = grade over the last 3 strides; stairs = 2 strides in a row with a big, steep rise.
+   4. Slip = Earth-horizontal acceleration averaged over 130 ms >= research threshold, right after landing,
+      while the foot is not swinging (low rotation).                                                     */
+const qmul=(a,b)=>[a[0]*b[0]-a[1]*b[1]-a[2]*b[2]-a[3]*b[3],a[0]*b[1]+a[1]*b[0]+a[2]*b[3]-a[3]*b[2],a[0]*b[2]-a[1]*b[3]+a[2]*b[0]+a[3]*b[1],a[0]*b[3]+a[1]*b[2]-a[2]*b[1]+a[3]*b[0]];
+const qnorm=q=>{const l=Math.hypot(q[0],q[1],q[2],q[3])||1;return[q[0]/l,q[1]/l,q[2]/l,q[3]/l];};
+function qrot(q,v){const[w,x,y,z]=q;return[(1-2*(y*y+z*z))*v[0]+2*(x*y-w*z)*v[1]+2*(x*z+w*y)*v[2],2*(x*y+w*z)*v[0]+(1-2*(x*x+z*z))*v[1]+2*(y*z-w*x)*v[2],2*(x*z-w*y)*v[0]+2*(y*z+w*x)*v[1]+(1-2*(x*x+y*y))*v[2]];}
+const upInBody=q=>{const[w,x,y,z]=q;return[2*(x*z-w*y),2*(y*z+w*x),1-2*(x*x+y*y)];};
+function qFromUp(f){const u=norm(f),s=Math.hypot(u[1],u[0]);if(s<1e-9)return u[2]>0?[1,0,0,0]:[0,1,0,0];const h=Math.atan2(s,u[2])/2,k=Math.sin(h)/s;return[Math.cos(h),u[1]*k,-u[0]*k,0];}
+const TERR={flat:'Flat ground',up:'Uphill','steep-up':'Steep uphill',down:'Downhill','steep-down':'Steep downhill','stairs-up':'Stairs up','stairs-down':'Stairs down'};
+const TERR_SAY={up:'Uphill.','steep-up':'Steep uphill. Short steps, lean forward.',down:'Downhill. Shorter steps.','steep-down':'Steep downhill. Slow down and take short steps.','stairs-up':'Stairs going up.','stairs-down':'Stairs going down. Hold the rail.',flat:'Flat ground again.'};
+const NAV={v:[0,0,0],vpk:0,dir:[1,0],landed:false,vmin:0,ready:false,q:[1,0,0,0],bias:[0,0,0],g:9.81,ei:[0,0,0],quietMs:0,still:true,buf:[],peakW:0,strides:[],sw:[],lastImpact:-1e9,landT:-1e9,pend:null,pendN:0,grade:0,last:null};
+function navInit(f0,gb){lastSlip=-1e9;Object.assign(NAV,{warm:2,v:[0,0,0],landed:false,ready:true,q:qFromUp(f0),bias:gb,g:Math.hypot(f0[0],f0[1],f0[2])||9.81,ei:[0,0,0],quietMs:0,still:true,buf:[],peakW:0,strides:[],sw:[],pend:null,pendN:0,grade:0,last:null});}
+const NAVTH=()=>S.mount==='sock'?{w:1.6,a:1.5}:{w:0.6,a:1.0};   // quasi-still limits: rad/s, m/s²
+function navStep(f,w0,dt,t){
+ const w=[w0[0]-NAV.bias[0],w0[1]-NAV.bias[1],w0[2]-NAV.bias[2]];
+ const wm=Math.hypot(w[0],w[1],w[2]),fm=Math.hypot(f[0],f[1],f[2]),th=NAVTH();
+ const quiet=wm<th.w&&Math.abs(fm-NAV.g)<th.a;NAV.quietMs=quiet?NAV.quietMs+dt*1000:0;
+ const planted=NAV.quietMs>=60;                     // conservative: the WHOLE last 60 ms was still
+ // ---- AHRS: gyro drives, accelerometer corrects only while planted ----
+ let wc=w;if(planted){const e=cross(norm(f),upInBody(NAV.q));for(let i=0;i<3;i++)NAV.ei[i]+=e[i]*dt;wc=[0,1,2].map(i=>w[i]+2*e[i]+0.02*NAV.ei[i]);}
+ const dq=qmul(NAV.q,[0,wc[0],wc[1],wc[2]]).map(x=>x*0.5*dt);
+ const aw=qrot(qnorm(NAV.q.map((x,i)=>x+0.5*dq[i])),f);aw[2]-=NAV.g;   // attitude AT this sample
+ NAV.q=qnorm(NAV.q.map((x,i)=>x+dq[i]));
+ // ---- slip: after the foot has landed (swing over, speed low), it SPEEDS UP again with little rotation.
+ //      A normal landing only slows the foot down; a slip accelerates it 0.1 -> 1.87 m/s in ~130 ms.
+ const ah=Math.hypot(aw[0],aw[1]);NAV.sw.push([t,ah,wm]);while(NAV.sw.length&&t-NAV.sw[0][0]>SLIP_WIN)NAV.sw.shift();
+ const hAvg=avg(NAV.sw.map(x=>x[1])),wAvg=avg(NAV.sw.map(x=>x[2]));
+ live.slideAvg=hAvg;
+ if(!planted&&!NAV.still){for(let i=0;i<3;i++)NAV.v[i]+=aw[i]*dt;
+  const sp=Math.hypot(NAV.v[0],NAV.v[1]);
+  if(!NAV.landed&&sp>NAV.vpk){NAV.vpk=sp;NAV.dir=[NAV.v[0]/sp,NAV.v[1]/sp];}   // walking direction = swing peak velocity
+  const fwd=NAV.v[0]*NAV.dir[0]+NAV.v[1]*NAV.dir[1];   // speed ALONG the step; landing overshoot goes backwards
+  if(NAV.peakW>2.6&&wm<2.6&&sp<0.5&&!NAV.landed){NAV.landed=true;NAV.landT=t;NAV.vmin=fwd;}
+  if(NAV.landed){if(fwd<NAV.vmin){NAV.vmin=fwd;}
+   const rise=fwd>0?fwd-Math.max(0,NAV.vmin):0;if(NAV.landed&&rise>live.slideMax)live.slideMax=rise;
+   if(rise>=0.8&&hAvg>=SLIP_TH&&wAvg<2.6&&t-lastSlip>2500){lastSlip=t;NAV.sw=[];NAV.landed=false;slip('sensor');}}}
+ // ---- strides: planted -> swing -> planted ----
+ if(planted){if(!NAV.still){NAV.still=true;navSwingEnd(t);}}
+ else{
+  if(NAV.still&&!quiet){NAV.still=false;NAV.buf=[];NAV.peakW=0;NAV.v=[0,0,0];NAV.landed=false;NAV.vpk=0;NAV.dir=[1,0];navSwingStart(t);}
+  if(!NAV.still){NAV.buf.push([aw[0],aw[1],aw[2],dt]);if(wm>NAV.peakW)NAV.peakW=wm;
+   if(NAV.buf.length*dt>4){NAV.buf=[];NAV.peakW=0;}}
+ }
+ return{wm,fm,planted};}
+function navSwingStart(t){closeStance();}
+function navSwingEnd(t){const b=NAV.buf;NAV.buf=[];let T=0;for(const x of b)T+=x[3];
+ if(T<0.2||T>2.5||NAV.peakW<2.6)return;            // shuffle or fidget, not a stride
+ const ve=[0,0,0];for(const x of b)for(let i=0;i<3;i++)ve[i]+=x[i]*x[3];
+ const v=[0,0,0],p=[0,0,0];let tt=0;
+ for(const x of b){tt+=x[3];for(let i=0;i<3;i++){v[i]+=x[i]*x[3];p[i]+=(v[i]-ve[i]*tt/T)*x[3];}}
+ const dz=p[2],dd=Math.hypot(p[0],p[1]);
+ const ok=dd>0.2&&dd<2.4&&Math.abs(dz)<0.6;         // reject sock slips / glitches
+ stride(t);
+ S.stanceStartT=t;stanceSamples=[];
+ NAV.last={dz,dd,ok};live.dz=dz;live.dd=dd;
+ if(!ok)return;if(NAV.warm>0){NAV.warm--;return;}   // first strides: attitude still settling
+ NAV.strides.push({dz,dd});if(NAV.strides.length>8)NAV.strides.shift();
+ S.distM+=dd;classifyTerrain();}
+function classifyTerrain(){
+ if(S.slopeForced){setSlopeState(S.slopeForced);return;}
+ const r=NAV.strides.slice(-3);if(r.length<2)return;let sd=0,sz=0;for(const x of r){sd+=x.dd;sz+=x.dz;}if(sd<1)return;
+ const g=sz/sd;NAV.grade=g;live.ground=Math.atan(g)*57.2958;
+ // only three states: flat / uphill / downhill (stairs and steep slopes count as up or down)
+ const k=g>0.05?'up':g<-0.05?'down':'flat';
+ if(k===NAV.pend)NAV.pendN++;else{NAV.pend=k;NAV.pendN=1;}
+ const need=Math.abs(g)>0.15?2:3;          // steep: 2 strides in agreement, gentle: 3
+ if(NAV.pendN>=need)setSlopeState(k);}
+let clk=0,lastEvT=0;
 function onMotion(e){
  const g=e.accelerationIncludingGravity;if(!g||g.x==null)return;sensorsSeen=true;
- const t=performance.now();const r=e.rotationRate||{};
- const gyro=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);
+ const now=performance.now();let dt=(now-lastEvT)/1000;lastEvT=now;
+ if(!(dt>0.002&&dt<0.1))dt=(e.interval>1&&e.interval<100?e.interval:10)/1000;   // first event or burst
+ clk=clk?clk+dt*1000:now;const t=clk;
+ const r=e.rotationRate||{};
+ const gyro=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);         // deg/s
+ const wv=[(r.beta||0)*D2R,(r.gamma||0)*D2R,(r.alpha||0)*D2R];  // body x,y,z in rad/s
+ const fv=[g.x,g.y,g.z];
  const mag=Math.hypot(g.x,g.y,g.z)/9.81;
  const k=gyro<40?.2:.05;grav.x+=(g.x-grav.x)*k;grav.y+=(g.y-grav.y)*k;grav.z+=(g.z-grav.z)*k;
  const gn=norm([grav.x,grav.y,grav.z]);
- // horizontal acceleration = the phone's motion with the vertical (gravity) part removed — works in any position
- const a=e.acceleration;let lin;
- if(a&&a.x!=null){const av=[a.x,a.y,a.z];const d=dot(av,gn);lin=Math.hypot(av[0]-d*gn[0],av[1]-d*gn[1],av[2]-d*gn[2]);}
- else{const av=[g.x-grav.x,g.y-grav.y,g.z-grav.z];const d=dot(av,gn);lin=Math.hypot(av[0]-d*gn[0],av[1]-d*gn[1],av[2]-d*gn[2]);}
- if(calibBuf){if(!calibBuf.skip){calibBuf.x+=g.x;calibBuf.y+=g.y;calibBuf.z+=g.z;calibBuf.n++;}return;}
+ if(calibBuf){if(!calibBuf.skip){calibBuf.x+=g.x;calibBuf.y+=g.y;calibBuf.z+=g.z;calibBuf.n++;if(calibPhase==='still'){calibBuf.gx+=wv[0];calibBuf.gy+=wv[1];calibBuf.gz+=wv[2];}}return;}
  if(!calib||!S.started||emer)return;
  const c0=dot(gn,calib.g0);
  const rp=Math.atan2(dot(gn,calib.f),c0)*57.2958, rr=Math.atan2(dot(gn,calib.s),c0)*57.2958;
  const tiltAll=Math.acos(Math.max(-1,Math.min(1,c0)))*57.2958;
- live.pitch=rp;live.roll=rr;live.gyro=gyro;live.g=mag;live.lin=lin;
+ live.pitch=rp;live.roll=rr;live.gyro=gyro;live.g=mag;
  // ---- auto-pause when the phone is picked up (held upright to look at it) ----
- if(S.mount==='shoe'&&Math.abs(rp)>55&&gyro<120){if(!handT)handT=t;if(!S.paused&&t-handT>900){S.paused=true;fallCand=0;tiltStill=0;st='stance';stanceSamples=[];refreshLive();}}else handT=0;
- if(S.paused){if(Math.abs(rp)<25&&Math.abs(rr)<25){if(!flatT)flatT=t;if(t-flatT>1000){S.paused=false;flatT=0;stanceStart=t;refreshLive();}}else flatT=0;return;}
- buf.push({t,mag,rp});if(buf.length>40)buf.shift();
- // ---- gait state machine (shoe: foot swings; sock: shin swings) ----
- if(st==='stance'){
-  if(t-stanceStart>100)stanceSamples.push({g:gyro,p:rp,r:rr});
-  if(gyro>150){st='swing';swingStart=t;stillStart=0;closeStance();}
- }else{
-  if(gyro<(S.mount==='sock'?90:55)){if(!stillStart)stillStart=t;if(t-stillStart>60&&t-swingStart>220){st='stance';stanceStart=t;stanceSamples=[];stride(t);}}else stillStart=0;
-  if(t-swingStart>4000){st='stance';stanceStart=t;stanceSamples=[];}
- }
- // ---- SLIP (accelerometer): the foot suddenly slides forward/sideways but is NOT rotating.
- // A normal step always rotates the foot (high gyro); a slip on ice is a fast slide with little rotation.
- // We average the foot's horizontal acceleration over the same 130 ms window the study measured.
- slideBuf.push({t,lin,gyro});while(slideBuf.length&&t-slideBuf[0].t>SLIP_WIN)slideBuf.shift();
- const sAvg=avg(slideBuf.map(x=>x.lin)), gAvg=avg(slideBuf.map(x=>x.gyro));
- live.slideAvg=sAvg;live.slideMax=Math.max(live.slideMax*0.985,sAvg);
- if(slideBuf.length>=4&&sAvg>=SLIP_TH&&gAvg<150&&t-lastSlip>2500&&t-swingStart>150){lastSlip=t;slideBuf=[];slip('sensor');}
- // ---- hard fall: strong impact, then the foot lies on its SIDE and stays still for 3 s ----
+ if(S.mount==='shoe'&&Math.abs(rp)>55&&gyro<120){if(!handT)handT=t;if(!S.paused&&t-handT>900){S.paused=true;fallCand=0;tiltStill=0;stanceSamples=[];refreshLive();}}else handT=0;
+ if(S.paused){if(Math.abs(rp)<25&&Math.abs(rr)<25){if(!flatT)flatT=t;if(t-flatT>1000){S.paused=false;flatT=0;NAV.quietMs=0;refreshLive();}}else flatT=0;return;}
+ buf.push({t,mag,rp});if(buf.length>60)buf.shift();
+ if(!NAV.ready)navInit(fv,[0,0,0]);
+ const n=navStep(fv,wv,dt,t);
+ if(n.planted&&t-(S.stanceStartT||0)>100)stanceSamples.push({g:gyro,p:rp,r:rr});
+ // ---- hard fall: strong impact, then the leg/foot lies on its side and stays still for 3 s ----
  if(mag>4&&!fallCand)fallCand=t;
- // shoe: the foot lies on its side. sock: the shin lies flat (leg on the ground).
  if(fallCand){const onSide=S.mount==='shoe'?(Math.abs(rr)>55&&Math.abs(rp)<45):tiltAll>55;
   if(t-fallCand>800&&onSide&&gyro<30){if(!tiltStill)tiltStill=t;if(t-tiltStill>3000){fallCand=0;tiltStill=0;fall('sensor');}}else tiltStill=0;
   if(t-fallCand>8000){fallCand=0;tiltStill=0;}}
 }
-// The foot is flat on the ground for a moment in every step. We take the stillest samples of that moment:
-// their forward tilt = the slope of the ground, their side tilt = how the foot sits (rolling / uneven ground).
+// The foot/ankle is planted for a moment every step. Its side tilt there = how the foot sits (rolling / uneven ground).
 function closeStance(){const s=stanceSamples;stanceSamples=[];if(s.length<3)return;s.sort((x,y)=>x.g-y.g);const q=s.slice(0,Math.max(3,Math.floor(s.length/3)));
  const p=avg(q.map(x=>x.p)),r=avg(q.map(x=>x.r));
  S.stancePitch.push(p);S.stanceRoll.push(r);S.pron.push(S.foot==='right'?r:-r);
  for(const k of ['stancePitch','stanceRoll','pron'])if(S[k].length>200)S[k].shift();
- live.ground=p;updateTerrain();}
-function stride(t){let pk={mag:0,rp:0};for(const s of buf)if(t-s.t<260&&s.mag>pk.mag)pk=s;
+ updateUneven();}
+function stride(t){let pk={mag:0,rp:0};for(const s of buf)if(t-s.t<400&&s.mag>pk.mag)pk=s;
  // shoe: toes up at landing = heel strike. sock: shin leans back at landing = heel strike (estimate).
- const type=S.mount==='shoe'?(pk.rp>9?'heel':pk.rp<-3?'fore':'mid'):(pk.rp<-8?'heel':'mid');addStride(type,pk.mag,t);}
+ const type=S.mount==='shoe'?(pk.rp>9?'heel':pk.rp<-3?'fore':'mid'):(pk.rp<-8?'heel':'mid');addStride(type,pk.mag||1,t);}
 function addStride(type,impact,t){
  S.lastStepT=Date.now();if(S.onBreak){S.onBreak=false;toast('Welcome back · break ended');}
  if(S.check&&S.check.kind==='rest')closeCheck();
@@ -220,14 +280,16 @@ function addStride(type,impact,t){
  S.strides.push(t||performance.now());S.steps+=2;S.lastImpact=impact;
  S.lastStrike=type==='heel'?'Heel strike':type==='fore'?'Forefoot strike':'Midfoot strike';
  checkHazards();refreshLive();}
-function updateTerrain(){
- if(S.slopeForced)setSlopeState(S.slopeForced);
- else{const r=S.stancePitch.slice(-3);if(r.length>=2){const m=median(r);const th=S.mount==='sock'?5:4;setSlopeState(m>th?'up':m<-th?'down':'flat');}}
+function updateUneven(){
  const rr=S.stanceRoll.slice(-4);if(rr.length<4)return;const m=avg(rr);const sd=Math.sqrt(avg(rr.map(x=>(x-m)**2)));live.unev=sd;
- if(sd>5&&performance.now()-S.lastUneven>15000){S.lastUneven=performance.now();S.uneven++;
+ if(sd>5&&clk-S.lastUneven>15000){S.lastUneven=clk;S.uneven++;
   if(S.sharing)S.hazards.push({id:S.nextId++,pos:Math.max(.5,pos()),type:'uneven',label:'Uneven ground',reports:1,lap:lap()});
   if(S.alertMode==='earbuds')speak('Uneven ground. Watch your step.');toast('Uneven ground detected'+(S.sharing?' · added to the shared map':''));refreshLive();}}
-function setSlopeState(s){if(s!==S.slope){S.slope=s;if(s!=='flat'&&S.alertMode==='earbuds')speak(s==='up'?'Uphill.':'Downhill. Shorter steps.');refreshLive();}}
+function setSlopeState(s){if(s===S.slope)return;const prev=S.slope;S.slope=s;
+ const steep=Math.abs(NAV.grade)>0.15&&!S.slopeForced;
+ const say=s==='up'?(steep?'Steep uphill. Short steps, lean forward.':'Uphill.'):s==='down'?(steep?'Steep downhill. Slow down, short steps.':'Downhill. Shorter steps.'):(prev!=='flat'?'Flat ground.':'');
+ if(say){if(S.alertMode==='earbuds')speak(say);toast((s==='flat'?'Flat ground':(steep?'Steep ':'')+(s==='up'?'uphill':'downhill'))+(NAV.grade&&s!=='flat'&&!S.slopeForced?` · ${Math.round(Math.abs(NAV.grade)*100)}% grade`:''));}
+ S.terrainLog.push({t:clk,s});refreshLive();}
 
 /* ================= trail / hazards ================= */
 const totalM=()=>S.steps*STEP_LEN+S.offset;
@@ -236,24 +298,24 @@ const lap=()=>Math.floor(totalM()/TRAIL_M);
 function ahead(h){let d=h.pos-pos();if(d<=0)d+=TRAIL_M;return d;}
 function nextHazard(){let best=null;for(const h of S.hazards)if(!best||ahead(h)<ahead(best))best=h;return best;}
 function checkHazards(){const L=lap();for(const h of S.hazards){const d=h.pos-pos();if(d>0&&d<=ALERT_M&&h.lap!==L){h.lap=L;alertHazard(h,d);}}}
-const MSG={ice:'Slippery path ahead. Slow down.',slope:'Steep slope ahead. Take it easy.',uneven:'Uneven ground ahead. Watch your step.'};
+const MSG={ice:'Ice reported ahead. Slow down and take short, flat steps.',slope:'Steep slope ahead. Take it easy.',uneven:'Uneven ground ahead. Watch your step.'};
 const HCOL={ice:'#DB4538',slope:'#F08F29',uneven:'#8B5CF6'};
 function alertHazard(h,d){
  if(!S.sharing){toast('Hazard ahead, but terrain alerts are off. Turn on sharing in Map.');return;}
- S.banner={title:h.type==='ice'?'Slippery path ahead':h.type==='slope'?'Steep slope ahead':'Uneven ground ahead',sub:`${h.label} in ${d.toFixed(0)} m · ${h.reports} report${h.reports>1?'s':''}`,msg:MSG[h.type]||MSG.ice,color:HCOL[h.type]||C.red};
+ S.banner={title:h.type==='ice'?'Ice ahead':h.type==='slope'?'Steep slope ahead':'Uneven ground ahead',sub:`${h.label} in ${d.toFixed(0)} m · ${h.reports} report${h.reports>1?'s':''}`,msg:MSG[h.type]||MSG.ice,color:HCOL[h.type]||C.red};
  S.pulseId=h.id;
  if(S.alertMode==='earbuds'){chime();speak(S.banner.msg);}else{chime();tab='map';}
  clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>{S.banner=null;S.pulseId=null;render();},8000);render();}
 function skipToHazard(){const h=nextHazard();if(!h)return;S.offset+=ahead(h)-ALERT_M;h.lap=-1;checkHazards();render();}
 function slip(src){S.slips++;let hid=null;
- if(S.sharing){hid=S.nextId++;S.hazards.push({id:hid,pos:Math.max(1,pos()),type:'ice',label:'Slip reported',reports:1,lap:lap()});}
- speak('Did you slip?');openCheck({kind:'slip',hid});render();}
+ if(S.sharing){hid=S.nextId++;S.hazards.push({id:hid,pos:Math.max(1,pos()),type:'ice',label:'Slip here · possible ice',reports:1,lap:lap()});}
+ chime();speak('Slip detected. It may be icy here. Did you slip?');openCheck({kind:'slip',hid});render();}
 /* ---- quick "did that happen?" check, like Google Maps asks ---- */
 let checkTimer=null;
 function openCheck(c){S.check=c;clearTimeout(checkTimer);checkTimer=setTimeout(()=>{if(S.check===c){if(c.kind==='rest')S.lastStepT=Date.now();if(c.kind==='slip')toast(S.sharing?'Slip saved to the shared map · no name attached':'Slip saved to your report');closeCheck();}},12000);renderCheck();}
 function closeCheck(){S.check=null;clearTimeout(checkTimer);renderCheck();}
 function renderCheck(){const el=document.getElementById('check');const c=S.check;if(!c||emer){el.innerHTML='';return;}
- if(c.kind==='slip')el.innerHTML=`<div class="check"><b>Did you slip?</b><p>Your answer keeps the hazard map accurate.</p><div class="row"><button class="w" data-act="ck-slip-yes">Yes, I slipped</button><button data-act="ck-slip-no">No</button><button data-act="ck-help">I fell</button></div></div>`;
+ if(c.kind==='slip')el.innerHTML=`<div class="check"><b>Slip detected · possible ice</b><p>Did you slip? Your answer keeps the ice alerts accurate.</p><div class="row"><button class="w" data-act="ck-slip-yes">Yes, I slipped</button><button data-act="ck-slip-no">No</button><button data-act="ck-help">I fell</button></div></div>`;
  else el.innerHTML=`<div class="check"><b>Are you resting?</b><p>You haven’t moved for a while.</p><div class="row"><button class="w" data-act="ck-break">Taking a break</button><button data-act="ck-moving">I’m fine</button><button data-act="ck-help">I need help</button></div></div>`;}
 function startBreak(){S.onBreak=true;closeCheck();toast((S.buddy?'Your buddies see: Ryan is taking a break':'Break started')+' · walk to resume');render();}
 
@@ -290,7 +352,7 @@ function analysis(){const n=S.strikes.heel+S.strikes.mid+S.strikes.fore;const no
  const landing=!S.impacts.length?'—':imp>2.8?'Hard':imp>1.8?'Medium':'Soft';
  let status='Waiting for steps',sc='#9b968e';if(score!==null){if(score>=80){status='Form: good';sc=C.green}else if(score>=62){status='Form: watch it';sc=C.orange}else{status='Form: needs work';sc=C.red}}
  // estimated pressure map from motion
- const hs=n?S.strikes.heel/n:.33,fs=n?S.strikes.fore/n:.2;let heel=.25+hs*.5,toe=.18+fs*.5+(S.slope==='up'?.15:0),inner=.3+Math.max(-.2,Math.min(.2,pr*.02)),outer=.3-Math.max(-.2,Math.min(.2,pr*.02));
+ const hs=n?S.strikes.heel/n:.33,fs=n?S.strikes.fore/n:.2;let heel=.25+hs*.5,toe=.18+fs*.5+(S.slope.includes('up')?.15:0),inner=.3+Math.max(-.2,Math.min(.2,pr*.02)),outer=.3-Math.max(-.2,Math.min(.2,pr*.02));
  const tot=heel+toe+inner+outer;const share={heel:heel/tot,toe:toe/tot,inner:inner/tot,outer:outer/tot};
  return{n,cad,imp,pr,cv,score,strike,rolling,landing,status,sc,share};}
 
@@ -302,8 +364,10 @@ function navHTML(){const b=([k,l])=>`<button data-tab="${k}" class="${tab===k?'s
 function bannerHTML(){if(!S.banner)return'';return`<div class="banner" style="background:${S.banner.color}">${I('alert',28,'#fff')}<div><b>${S.banner.title}</b><span>${S.banner.sub}</span></div></div>${S.alertMode==='earbuds'?`<div class="pill dark" style="align-self:flex-start">${I('head',15,'#fff')} “${S.banner.msg}”</div>`:''}`;}
 function coachCue(a){if(S.onBreak)return'On a break. Start walking to resume.';
  if(a.score===null)return'Start walking. I’ll coach your landings and posture.';
- if(S.slope==='up')return'Uphill: lean slightly forward from your ankles, small steps.';
- if(S.slope==='down')return'Downhill: bend your knees a little and slow down.';
+ if(S.slope==='stairs-up')return'Stairs: one step at a time, use the rail.';
+ if(S.slope==='stairs-down')return'Stairs down: slow, hold the rail.';
+ if(S.slope.includes('up'))return'Uphill: lean slightly forward from your ankles, small steps.';
+ if(S.slope.includes('down'))return'Downhill: bend your knees a little and slow down.';
  if(a.landing==='Hard')return'Land softer: shorter steps, feet under your hips.';
  if(a.rolling==='Rolling in')return'Ankle rolling in: push off from your big toe.';
  if(a.rolling==='Rolling out')return'Foot rolling out: keep weight over the middle of your foot.';
@@ -320,7 +384,7 @@ function runHTML(){const a=analysis();const h=nextHazard();const mins=Math.max(0
   <div class="stat"><b id="vCad" style="font-size:22px">${a.cad}</b><span>Steps per minute</span></div>
   <div class="stat"><b style="font-size:22px">${mins} min</b><span>Time</span></div></div></div>
  <div class="row"><span class="pill"><span class="d" style="background:${a.sc}"></span><span id="vStatus">${a.status}</span></span><span class="pill" id="vStrike">${S.lastStrike}</span>
- <span class="pill"><span class="d" style="background:${S.slope==='flat'?C.green:C.orange}"></span><span id="vSlope">${S.slope==='up'?'Uphill':S.slope==='down'?'Downhill':'Flat ground'}</span></span>${S.uneven?`<span class="pill"><span class="d" style="background:#8B5CF6"></span>Uneven ×${S.uneven}</span>`:''}</div>
+ <span class="pill"><span class="d" style="background:${S.slope==='flat'?C.green:S.slope.startsWith('steep')||S.slope.startsWith('stairs')?C.red:C.orange}"></span><span id="vSlope">${TERR[S.slope]||'Flat ground'}${NAV.grade&&!S.slopeForced&&!S.slope.startsWith('stairs')?` · ${Math.round(NAV.grade*100)}%`:''}</span></span>${S.uneven?`<span class="pill"><span class="d" style="background:#8B5CF6"></span>Uneven ×${S.uneven}</span>`:''}</div>
  <div class="card"><div class="lrow" style="padding:0"><span style="width:40px;height:40px;border-radius:12px;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;flex:none">${I('coach',20,C.teal)}</span><div class="tx"><b>Form &amp; posture coach</b><span id="vCoach">${coachCue(a)}</span></div>${tg(S.coachOn,'coach')}</div></div>
  <button class="btn full" data-act="${S.onBreak?'resume':'break'}" style="display:flex;align-items:center;justify-content:center;gap:8px;${S.onBreak?'background:var(--orange);color:#fff':''}">${I(S.onBreak?'run':'pause',18)} ${S.onBreak?'Resume trek':'I’m taking a break'}</button>
  <div class="card"><div class="ctitle">Terrain alerts via</div><div class="seg"><button data-act="mode-earbuds" class="${S.alertMode==='earbuds'?'sel':''}">🎧 Earbuds</button><button data-act="mode-map" class="${S.alertMode==='map'?'sel':''}">🗺 Map</button></div>
@@ -434,7 +498,7 @@ function refreshLive(){if(tab==='run'||tab==='map'||tab==='buddy')render();}
 
 /* light per-frame updates */
 setInterval(()=>{const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
- set('dP',live.pitch.toFixed(0)+'°');set('dR',live.roll.toFixed(0)+'°');set('dG',live.gyro.toFixed(0)+'°/s');set('dA',live.g.toFixed(1)+' g');set('dS',live.ground.toFixed(1)+'°');set('dU',live.unev.toFixed(1)+'°');set('dJ',live.slideMax.toFixed(1)+' m/s²');
+ set('dP',live.pitch.toFixed(0)+'°');set('dR',live.roll.toFixed(0)+'°');set('dG',live.gyro.toFixed(0)+'°/s');set('dA',live.g.toFixed(1)+' g');set('dS',(NAV.grade*100).toFixed(0)+'%');set('dZ',(live.dz*100).toFixed(0)+' cm / '+live.dd.toFixed(2)+' m');set('dU',live.unev.toFixed(1)+'°');set('dJ',(live.slideAvg||0).toFixed(1)+' m/s²');set('dK',live.slideMax.toFixed(2)+' m/s');
  if(tab==='run')set('vCad',analysis().cad);
  const k=S.arTarget;if(tab==='ar'&&k&&heading!==null){if(arBear[k]==null)arBear[k]=(heading+PEOPLE[k].b+720)%360;let rel=((arBear[k]-heading+540)%360)-180;const ar=document.getElementById('arrow');if(ar)ar.style.transform=`rotate(${rel}deg)`;
   set('vTurn',Math.abs(rel)<15?`${k} is straight ahead`:rel>0?'Turn right →':'← Turn left');}},120);
@@ -483,7 +547,7 @@ function demoSheet(open){const s=document.getElementById('sheet');s.classList.to
  <button class="btn" data-act="d-flat">Auto slope</button><button class="btn" data-act="d-rest">Stand still (rest check)</button>
  <button class="btn red" data-act="d-fall" style="grid-column:1/-1">Hard fall</button>
  <div style="grid-column:1/-1"><div class="tag" style="margin:4px 0 6px">Slip sensitivity</div><div class="seg">${[['Research '+SLIP_LOW,SLIP_LOW],['Demo 6',6],['Easy demo 4',4]].map(([l,v])=>`<button data-act="slip-${v}" class="${SLIP_TH===v?'sel':''}">${l}</button>`).join('')}</div></div><div style="grid-column:1/-1"><div class="tag" style="margin:4px 0 6px">Step length</div><div class="seg">${[0.6,0.7,0.8].map(v=>`<button data-act="len-${v}" class="${STEP_LEN===v?'sel':''}">${v} m</button>`).join('')}</div></div><button class="btn" data-act="d-recal">Recalibrate</button><button class="btn" data-act="d-reset">Reset session</button></div>
- <div class="card" style="margin-top:14px;box-shadow:none;background:var(--bg)"><div class="tag" style="margin-bottom:8px">Live sensor data</div><div class="debug"><span>Forward tilt</span><span id="dP">${live.pitch.toFixed(0)}°</span><span>Side tilt</span><span id="dR">${live.roll.toFixed(0)}°</span><span>Rotation</span><span id="dG">${live.gyro.toFixed(0)}°/s</span><span>Impact</span><span id="dA">${live.g.toFixed(1)} g</span><span>Ground slope (last step)</span><span id="dS">${live.ground.toFixed(1)}°</span><span>Side wobble (4 steps)</span><span id="dU">${live.unev.toFixed(1)}°</span><span>Slide accel (130 ms)</span><span id="dJ">${live.slideMax.toFixed(1)} m/s²</span></div><p class="small" style="margin-top:8px">Uphill when ground slope &gt; +4°, downhill &lt; −4°. Uneven ground when side wobble &gt; 5°. Slip when slide acceleration ≥ ${SLIP_TH} m/s² while the foot is not rotating (research band ${SLIP_LOW}–${SLIP_HIGH} m/s², Iraqi et al. 2018).</p></div>`;}
+ <div class="card" style="margin-top:14px;box-shadow:none;background:var(--bg)"><div class="tag" style="margin-bottom:8px">Live sensor data</div><div class="debug"><span>Forward tilt</span><span id="dP">${live.pitch.toFixed(0)}°</span><span>Side tilt</span><span id="dR">${live.roll.toFixed(0)}°</span><span>Rotation</span><span id="dG">${live.gyro.toFixed(0)}°/s</span><span>Impact</span><span id="dA">${live.g.toFixed(1)} g</span><span>Last stride rise / length</span><span id="dZ">${(live.dz*100).toFixed(0)} cm / ${live.dd.toFixed(2)} m</span><span>Ground grade (3 strides)</span><span id="dS">${(NAV.grade*100).toFixed(0)}%</span><span>Side wobble (4 steps)</span><span id="dU">${live.unev.toFixed(1)}°</span><span>Slide accel (130 ms)</span><span id="dJ">${(live.slideAvg||0).toFixed(1)} m/s²</span><span>Re-acceleration after landing (peak)</span><span id="dK">${live.slideMax.toFixed(2)} m/s</span></div><p class="small" style="margin-top:8px">Each stride is measured planted-to-planted (ZUPT), so the swing arc cancels. Uphill/downhill when the grade over the last 3 strides is above 5% (3 strides must agree; 2 if steeper than 15%). Ice can't be sensed directly: it is announced from hazards other hikers reported and from places where slips were detected. Uneven ground when side wobble &gt; 5°. Slip when, after the foot has landed, it speeds up again by ≥ 0.8 m/s with Earth-horizontal acceleration ≥ ${SLIP_TH} m/s² over 130 ms and little rotation (research band ${SLIP_LOW}–${SLIP_HIGH} m/s², Iraqi et al. 2018).</p></div>`;}
 
 /* ================= start / sensors ================= */
 async function start(){S.started=true;S.startT=Date.now();try{actx=actx||new AudioContext();await actx.resume();}catch(e){}
@@ -494,14 +558,15 @@ async function start(){S.started=true;S.startT=Date.now();try{actx=actx||new Aud
  try{wakeLock=await navigator.wakeLock.request('screen');}catch(e){}
  calibrate();}
 const setCalN=n=>{const e=document.getElementById('calN');if(e&&n>0)e.firstChild.nodeValue=n;};
-function calibrate(){calibBuf={x:0,y:0,z:0,n:0,skip:false};calibPhase='still';speak('Calibrating. Stand still.',100);let n=3;renderOverlay();
+function calibrate(){calibBuf={x:0,y:0,z:0,n:0,gx:0,gy:0,gz:0,skip:false};calibPhase='still';speak('Calibrating. Stand still.',100);let n=3;renderOverlay();
  const iv=setInterval(()=>{n--;setCalN(n);if(n>0)return;clearInterval(iv);
   const ok0=calibBuf.n>5, g0=ok0?norm([calibBuf.x,calibBuf.y,calibBuf.z]):[0,0,1];
-  calibBuf={x:0,y:0,z:0,n:0,skip:true};calibPhase='lean';renderOverlay();
+  const f0=ok0?[calibBuf.x/calibBuf.n,calibBuf.y/calibBuf.n,calibBuf.z/calibBuf.n]:[0,0,9.81], gb=ok0?[calibBuf.gx/calibBuf.n,calibBuf.gy/calibBuf.n,calibBuf.gz/calibBuf.n]:[0,0,0];
+  calibBuf={x:0,y:0,z:0,n:0,gx:0,gy:0,gz:0,skip:true};calibPhase='lean';renderOverlay();
   speak(S.mount==='sock'?'Now bend your knee forward and hold.':'Now lift your toes and hold.',100);
   let m=3;const iv2=setInterval(()=>{m--;setCalN(m);if(m===2)calibBuf.skip=false;if(m>0)return;clearInterval(iv2);
    const g1=calibBuf.n>5?norm([calibBuf.x,calibBuf.y,calibBuf.z]):null;
-   calib=buildCalib(g0,g1);calibBuf=null;calibPhase=null;st='stance';stanceStart=performance.now();S.stancePitch=[];S.stanceRoll=[];
+   calib=buildCalib(g0,g1);calibBuf=null;calibPhase=null;navInit(f0,gb);S.stancePitch=[];S.stanceRoll=[];
    renderOverlay();render();
    if(!sensorsSeen)toast('No motion sensors found. Use the Demo button.');
    else{speak(calib.learned?'SoleMate is ready. Start walking.':'I could not feel the lean, so I used default directions. You can recalibrate in Demo.',100);if(!calib.learned)toast('Lean not detected · using default directions (Demo → Recalibrate)');}},1000);},1000);}
@@ -582,7 +647,7 @@ document.getElementById('app').addEventListener('click',e=>{
  else if(a.startsWith('slip-')){SLIP_TH=parseFloat(a.slice(5));demoSheet(true);}
  else if(a.startsWith('len-')){STEP_LEN=parseFloat(a.slice(4));demoSheet(true);}
  else if(a==='d-recal'){demoSheet(false);calibrate();return;}
- else if(a==='d-reset'){const f=S.foot,mt=S.mount;S=fresh();S.foot=f;S.mount=mt;S.started=true;demoSheet(false);closeCheck();}
+ else if(a==='d-reset'){const f=S.foot,mt=S.mount;S=fresh();S.foot=f;S.mount=mt;S.started=true;NAV.strides=[];NAV.pend=null;NAV.grade=0;demoSheet(false);closeCheck();}
  render();});
 render();
 </script>
