@@ -209,7 +209,7 @@ const TERR={flat:'Flat ground',up:'Uphill','steep-up':'Steep uphill',down:'Downh
 const TERR_SAY={up:'Uphill.','steep-up':'Steep uphill. Short steps, lean forward.',down:'Downhill. Shorter steps.','steep-down':'Steep downhill. Slow down and take short steps.','stairs-up':'Stairs going up.','stairs-down':'Stairs going down. Hold the rail.',flat:'Flat ground again.'};
 const SLIP_B=22;
 const NAV={gh:[],v:[0,0,0],vpk:0,dir:[1,0],landed:false,vmin:0,ready:false,q:[1,0,0,0],bias:[0,0,0],g:9.81,ei:[0,0,0],quietMs:0,still:true,buf:[],peakW:0,strides:[],sw:[],lastImpact:-1e9,landT:-1e9,pend:null,pendN:0,grade:0,last:null};
-function navInit(f0,gb){lastSlip=-1e9;Object.assign(NAV,{gh:[],warm:2,learn:[],tb:0,v:[0,0,0],landed:false,ready:true,q:qFromUp(f0),bias:gb,g:Math.hypot(f0[0],f0[1],f0[2])||9.81,ei:[0,0,0],quietMs:0,still:true,buf:[],peakW:0,strides:[],sw:[],pend:null,pendN:0,grade:0,last:null});}
+function navInit(f0,gb){lastSlip=-1e9;Object.assign(NAV,{gh:[],warm:2,learn:[],tb:0,v:[0,0,0],landed:false,ready:true,q:qFromUp(f0),bias:gb,g:Math.hypot(f0[0],f0[1],f0[2])||9.81,ei:[0,0,0],quietMs:0,still:true,buf:[],peakW:0,strides:[],sw:[],pend:null,pendN:0,grade:0,last:null,lastSw:-1e9,climbN:0,noClimb:0});S.sensUp=false;}
 const NAVTH=()=>S.mount==='sock'?{w:1.6,a:1.5}:{w:0.6,a:1.0};   // quasi-still limits: rad/s, m/s²
 function navStep(f,w0,dt,t){
  const w=[w0[0]-NAV.bias[0],w0[1]-NAV.bias[1],w0[2]-NAV.bias[2]];
@@ -231,7 +231,8 @@ function navStep(f,w0,dt,t){
  // rule B (fitted on Bea's real recording, phone in sock): a slip throws the shin hard AND pushes the foot
  // sideways along the ground at the same moment. Over 130 ms: horizontal ≥ 22 m/s² and shin rotation ≥ 340 °/s.
  // Normal walking peaked at 22.2 m/s² / 299 °/s; the 3 recorded slips were 24.9–38.4 m/s² / 370–409 °/s.
- if(NAV.sw.length>=4&&hAvg>=SLIP_B&&wAvg>=340*D2R&&t-lastSlip>2500){lastSlip=t;NAV.sw=[];NAV.landed=false;slip('sensor');}
+ // A hard stomp on the stairs-day walk reached 22.7 / 346, so both together must also be well over (score ≥ 2.12).
+ if(NAV.sw.length>=4&&hAvg>=SLIP_B&&wAvg>=340*D2R&&hAvg/SLIP_B+wAvg/(340*D2R)>=2.12&&t-lastSlip>2500){lastSlip=t;NAV.sw=[];NAV.landed=false;slip('sensor');}
  if(!planted&&!NAV.still){for(let i=0;i<3;i++)NAV.v[i]+=aw[i]*dt;
   const sp=Math.hypot(NAV.v[0],NAV.v[1]);
   if(!NAV.landed&&sp>NAV.vpk){NAV.vpk=sp;NAV.dir=[NAV.v[0]/sp,NAV.v[1]/sp];}   // walking direction = swing peak velocity
@@ -242,6 +243,7 @@ function navStep(f,w0,dt,t){
    if(rise>=0.8&&hAvg>=SLIP_TH&&wAvg<2.6&&t-lastSlip>2500){lastSlip=t;NAV.sw=[];NAV.landed=false;slip('sensor');}}}
  // ---- strides: planted -> swing -> planted ----
  if(planted){if(!NAV.still){NAV.still=true;navSwingEnd(t);}}
+ if(S.sensUp&&t-NAV.lastSw>3000)setClimb(false);   // stopped at the top of the stairs
  else{
   if(NAV.still&&!quiet){NAV.still=false;NAV.buf=[];NAV.peakW=0;NAV.v=[0,0,0];NAV.landed=false;NAV.vpk=0;NAV.dir=[1,0];navSwingStart(t);}
   if(!NAV.still){NAV.buf.push([aw[0],aw[1],aw[2],dt]);if(wm>NAV.peakW)NAV.peakW=wm;
@@ -269,12 +271,23 @@ function navSwingEnd(t){const b=NAV.buf;NAV.buf=[];let T=0;for(const x of b)T+=x
  const v=[0,0,0],p=[0,0,0];let tt=0;
  for(const x of b){tt+=x[3];for(let i=0;i<3;i++){v[i]+=x[i]*x[3];p[i]+=(v[i]-ve[i]*tt/T)*x[3];}}
  const dz=p[2],dd=Math.hypot(p[0],p[1]);
+ climbCheck(t,dz,dd);
  const ok=dd>0.2&&dd<2.4&&Math.abs(dz)<0.6;         // reject sock slips / glitches
  NAV.last={dz,dd,ok};live.dz=dz;live.dd=dd;
  if(!ok)return;if(NAV.warm>0){NAV.warm--;return;}   // first strides: attitude still settling
  if(NAV.learn.length<5){NAV.learn.push(dz/dd);if(NAV.learn.length===5){NAV.tb=Math.max(-0.08,Math.min(0.08,median(NAV.learn)));toast('Ready · terrain tracking on');}return;}   // flat-ground walk calibration
  NAV.strides.push({dz:dz-NAV.tb*dd,dd});if(NAV.strides.length>8)NAV.strides.shift();
  S.distM+=dd;classifyTerrain();}
+// sock mount, tested on real stairs data: climbing = several strides in a row that each rise 20–160 cm
+// at a slower cadence (>1.3 s per stride) than flat walking (~1.1 s). Flat walking never gave 4 in a row.
+function climbCheck(t,dz,dd){const gap=t-(NAV.lastSw||-1e9);NAV.lastSw=t;if(S.mount!=='sock')return;
+ const c=dz>0.2&&dz<1.6&&dd>0.25&&gap>1300;NAV.climbN=c?(NAV.climbN||0)+1:0;
+ if(NAV.climbN>=4)setClimb(true);
+ else if(S.sensUp){const keep=dz>0.1&&dz<1.6;   // once climbing, a slower or shorter step still counts
+  if(keep)NAV.noClimb=0;else if(++NAV.noClimb>=2)setClimb(false);}}
+function setClimb(on){if(on===!!S.sensUp)return;S.sensUp=on;NAV.noClimb=0;
+ if(on){if(S.alertMode==='earbuds')speak('Uphill. Short steps, use the rail.');toast('Uphill · climbing');}
+ S.terrainLog.push({t:clk,s:on?'up':'flat'});refreshLive();}
 function classifyTerrain(){
  if(S.mount==='sock'&&!S.slopeForced)return;   // real sock data: ±18 cm per stride → slope from the route instead
  if(S.slopeForced){setSlopeState(S.slopeForced);return;}
@@ -351,7 +364,7 @@ const lap=()=>Math.floor(totalM()/TRAIL_M);
 function ahead(h){let d=h.pos-pos();if(d<=0)d+=TRAIL_M;return d;}
 // what the route says is under you now (reported by others): inside the 10 m after a pin
 function routeNow(){for(const h of S.hazards){if(!['up','down','slope'].includes(h.type))continue;const d=pos()-h.pos;if(d>=0&&d<10)return h.type==='down'?'down':'up';}return'flat';}
-const terrainNow=()=>S.slopeForced||(S.mount==='sock'?routeNow():S.slope);
+const terrainNow=()=>S.slopeForced||(S.mount==='sock'?(S.sensUp?'up':routeNow()):S.slope);
 function nextHazard(){let best=null;for(const h of S.hazards)if(ALERT_TYPES.includes(h.type)&&(!best||ahead(h)<ahead(best)))best=h;return best;}
 function checkHazards(){const L=lap();for(const h of S.hazards){if(!ALERT_TYPES.includes(h.type))continue;const d=h.pos-pos();
  if(d>ALERT_M&&d<=EARLY_M&&h.earlyLap!==L){h.earlyLap=L;alertHazard(h,d,true);}
