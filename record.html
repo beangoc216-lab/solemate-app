@@ -25,6 +25,9 @@ button:disabled{background:var(--soft);color:var(--mute)}
 #count{font-size:64px;font-weight:800;color:var(--red);text-align:center;min-height:80px}
 .stat{display:flex;justify-content:space-between;font-size:14px;padding:4px 0;border-bottom:1px solid var(--soft)}
 .small{font-size:13px;color:var(--mute)}
+.opt{flex:1;display:flex;gap:8px;align-items:center;background:var(--soft);border-radius:14px;padding:12px;font-weight:700;margin:0}
+.opt input{width:20px;height:20px;accent-color:var(--teal)}
+fieldset .row{display:flex;gap:10px}
 </style>
 </head>
 <body>
@@ -43,6 +46,9 @@ button:disabled{background:var(--soft);color:var(--mute)}
 </div>
 
 <div class="card" id="setup">
+ <fieldset style="border:0;padding:0;margin:0 0 12px"><legend style="font-weight:700;font-size:17px;margin-bottom:8px">Test</legend>
+  <div class="row"><label class="opt"><input type="radio" name="mode" value="slip" checked> Slips</label><label class="opt"><input type="radio" name="mode" value="stairs"> Stairs</label></div></fieldset>
+ <div id="planSlip">
  <h2>Plan</h2>
  <ol class="small" style="color:var(--ink)">
   <li>Put the phone in your right sock, upright against your shin, screen out (same as the app).</li>
@@ -50,7 +56,19 @@ button:disabled{background:var(--soft);color:var(--mute)}
   <li><b>Walk normally</b> (around the room or a hallway).</li>
   <li><b>Slip trials:</b> the voice counts “3, 2, 1, slip now”. Do one small slip, then keep walking.</li>
  </ol>
- <div class="row" style="margin-top:12px">
+ </div>
+ <div id="planStairs" hidden>
+ <h2>Plan</h2>
+ <ol class="small" style="color:var(--ink)">
+  <li>Phone in your right sock, upright against your shin (same as the app). Start at the <b>bottom</b> of a staircase with a flat hallway nearby.</li>
+  <li><b>Stand still</b> 5 s, then <b>walk on flat ground</b> 30 s.</li>
+  <li>“<b>Walk up the stairs now</b>”: walk up at a normal pace, hold the rail. At the top, <b>stand still</b> until the voice speaks.</li>
+  <li>“<b>Walk down the stairs now</b>”: walk down, then <b>stand still</b> at the bottom.</li>
+  <li>Repeat. Finish with 20 s of flat walking.</li>
+ </ol>
+ <div><label for="rounds">Up + down rounds</label><input id="rounds" type="number" min="1" max="4" value="2" inputmode="numeric"></div>
+ </div>
+ <div class="row" id="slipOpts" style="margin-top:12px">
   <div><label for="walkMin">Walking (minutes)</label><input id="walkMin" type="number" min="1" max="5" value="3" inputmode="numeric"></div>
   <div><label for="trials">Slip trials</label><input id="trials" type="number" min="1" max="10" value="5" inputmode="numeric"></div>
  </div>
@@ -65,7 +83,7 @@ button:disabled{background:var(--soft);color:var(--mute)}
  <div class="stat"><span>Time</span><b id="tm">0:00</b></div>
  <div class="stat"><span>Samples</span><b id="ns">0</b></div>
  <div class="stat"><span>Sensor rate</span><b id="hz">–</b></div>
- <div class="stat"><span>Slips done</span><b id="sd">0</b></div>
+ <div class="stat"><span id="sdLabel">Slips done</span><b id="sd">0</b></div>
  <button class="red" id="markBtn">I slipped (mark now)</button>
  <p class="small" style="margin-top:6px">Only if you can reach the screen. The voice already marks each slip.</p>
  <button id="stopBtn">Stop</button>
@@ -102,7 +120,8 @@ async function start(){
  try{if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission){const p=await DeviceMotionEvent.requestPermission();if(p!=='granted'){$('sensorMsg').textContent='Motion permission was refused.';return;}}}catch(e){}
  try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission)await DeviceOrientationEvent.requestPermission();}catch(e){}
  try{wake=await Promise.race([navigator.wakeLock.request('screen'),new Promise(r=>setTimeout(()=>r(null),1000))]);}catch(e){}   // keep the screen on, never wait for it
- const W=Math.max(1,Math.min(5,+$('walkMin').value||3)),N=Math.max(1,Math.min(10,+$('trials').value||5));
+ const MODE=document.querySelector('input[name=mode]:checked').value;
+ const W=Math.max(1,Math.min(5,+$('walkMin').value||3)),N=Math.max(1,Math.min(10,+$('trials').value||5)),RN=Math.max(1,Math.min(4,+$('rounds').value||2));
  rows.length=0;cnt=0;trial=0;$('sd').textContent='0';
  window.addEventListener('devicemotion',onMotion);window.addEventListener('deviceorientation',onOri);
  $('setup').hidden=true;$('live').hidden=false;$('done').hidden=true;
@@ -112,6 +131,7 @@ async function start(){
   if(s>4&&rows.length===0)$('phase').textContent='No sensor data. Open this page in Chrome on the phone.';},250);
  // ---- the script ----
  let T=0;
+ if(MODE==='stairs'){stairsScript(RN);return;}
  setPhase('ready','Put the phone in your sock');say('Put the phone in your right sock now. Then stand still.');T+=15;
  at(T,()=>{setPhase('still','Stand still');beep();say('Stand still.');});T+=5;
  at(T,()=>{setPhase('walk','Walk normally');beep();say(`Walk normally for ${W} minute${W>1?'s':''}.`);});
@@ -126,14 +146,29 @@ async function start(){
  }
  at(T,()=>{setPhase('still','Stand still');beep();say('Stand still.');});T+=4;
  at(T,()=>{finish('Done. You can take the phone out.');});}
+// stairs: phase tells what the person was asked to do; the analysis finds the exact moving part
+function stairsScript(RN){let T=0;
+ setPhase('ready','Put the phone in your sock');say('Put the phone in your right sock now. Then stand still.');T+=15;
+ at(T,()=>{setPhase('still','Stand still');beep();say('Stand still.');});T+=5;
+ at(T,()=>{setPhase('walk','Walk on flat ground');beep();say('Walk on flat ground for 30 seconds.');});T+=30;
+ for(let i=1;i<=RN;i++){
+  at(T,()=>{setPhase('to_stairs','Go to the bottom of the stairs');beep();say(`Round ${i}. Go to the bottom of the stairs and stand still.`);});T+=12;
+  at(T,()=>{trial=i;setPhase('stairs_up','Walk up the stairs');beep();say('Walk up the stairs now. Hold the rail. Stand still at the top.');});T+=30;
+  at(T,()=>{setPhase('stairs_down','Walk down the stairs');beep();say('Walk down the stairs now. Stand still at the bottom.');});T+=30;
+  at(T,()=>{trial=0;$('sd').textContent=i;});
+ }
+ at(T,()=>{setPhase('walk','Walk on flat ground');beep();say('Walk on flat ground for 20 seconds.');});T+=20;
+ at(T,()=>{setPhase('still','Stand still');beep();say('Stand still.');});T+=4;
+ at(T,()=>{finish('Done. You can take the phone out.');});}
 function finish(msg){if(!rec)return;rec=false;timers.forEach(clearTimeout);timers=[];clearInterval(tick);
  window.removeEventListener('devicemotion',onMotion);window.removeEventListener('deviceorientation',onOri);try{wake&&wake.release();}catch(e){}
  say(msg||'Stopped.');$('live').hidden=true;$('done').hidden=false;
  const dur=rows.length?(+rows[rows.length-1][0]).toFixed(0):0,slips=new Set(rows.filter(r=>r[15]>0).map(r=>r[15])).size,marks=rows.filter(r=>r[16]).length;
- $('sum').textContent=`${rows.length} samples · ${dur} s · ${slips} slip trial${slips===1?'':'s'}${marks?' · '+marks+' manual mark'+(marks>1?'s':''):''}`;$('shareBtn').focus();}
-function file(){const name='solemate-test-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.csv';return new File([csv()],name,{type:'text/csv'});}
+ const st=rows.some(r=>r[14]==='stairs_up');$('sum').textContent=`${rows.length} samples · ${dur} s · ${st?slips+' stair round'+(slips===1?'':'s'):slips+' slip trial'+(slips===1?'':'s')}${marks?' · '+marks+' manual mark'+(marks>1?'s':''):''}`;$('shareBtn').focus();}
+function file(){const name='solemate-'+(rows.some(r=>r[14]==='stairs_up')?'stairs':'test')+'-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.csv';return new File([csv()],name,{type:'text/csv'});}
 function download(){const fl=file(),u=URL.createObjectURL(fl),a=document.createElement('a');a.href=u;a.download=fl.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);}
 $('startBtn').onclick=start;
+document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{const st=document.querySelector('input[name=mode]:checked').value==='stairs';$('planSlip').hidden=st;$('slipOpts').hidden=st;$('planStairs').hidden=!st;$('sdLabel').textContent=st?'Rounds done':'Slips done';});
 $('stopBtn').onclick=()=>finish('Stopped.');
 $('markBtn').onclick=()=>{mark=1;beep();};
 $('dlBtn').onclick=download;
