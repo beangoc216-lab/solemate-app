@@ -770,7 +770,7 @@ function a11yModal(){const o=document.getElementById('overlay'),sheet=document.g
  const sig=o.innerHTML.slice(0,120)+(sheet.classList.contains('open')?'S':'');
  if(modal&&sig!==lastModal){const r=o.innerHTML.trim()?o:sheet;const f=r.querySelector('[data-act=ok]')||r.querySelector('[data-act=send]')||r.querySelector('[data-act=ok-after]')||r.querySelector('button,input')||r.querySelector('h1,h2');if(f){if(!f.matches('button,input,a'))f.setAttribute('tabindex','-1');f.focus({preventScroll:true});}}
  lastModal=modal?sig:'';}
-function a11yPass(root){root.querySelectorAll('.seg').forEach(g=>{g.setAttribute('role','group');g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('sel')?'true':'false'));});}
+function a11yPass(root){root.querySelectorAll('.seg:not([role=tablist])').forEach(g=>{g.setAttribute('role','group');g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('sel')?'true':'false'));});}
 const TITLES={run:'Walk',report:'Report',buddy:'Group',safety:'Safety',ar:'Find with camera'};
 function render(){document.getElementById('nav').innerHTML=navHTML();const c=document.getElementById('content');
  if(tab==='map')tab='buddy';c.innerHTML=tab==='run'?runHTML():tab==='report'?reportHTML():tab==='buddy'?buddyHTML():tab==='safety'?safetyHTML():arHTML();
