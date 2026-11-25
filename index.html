@@ -124,7 +124,7 @@ const SLIP_WIN=130;        // ms — the slip window measured in the study (20 m
 let SLIP_TH=SLIP_LOW;      // m/s² (Demo → sensitivity can lower it for classroom tests)
 const C={teal:'#12666B',red:'#DB4538',orange:'#F08F29',green:'#389E5C',blue:'#3B78D9',ink:'#121214'};
 const P={run:'<path d="M13 4a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/><path d="M7 21l3-6 3 2v5M10 15l1-6 4 3 3 1M8 9l3-1"/>',map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',report:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>',buddy:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c0-2.8-1.6-4.8-4-5.6"/>',ar:'<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3"/>',alert:'<path d="M12 3L2 20h20z"/><path d="M12 10v4M12 17h.01"/>',head:'<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',sliders:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'};
-Object.assign(P,{phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',pause:'<path d="M9 5v14M15 5v14"/>',pin:'<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',coach:'<path d="M12 3v3M5 6l2 2M19 6l-2 2"/><path d="M8 14a4 4 0 1 1 8 0c0 2-2 3-2 5h-4c0-2-2-3-2-5z"/><path d="M10 21h4"/>'});
+Object.assign(P,{up:'<path d="M4 18L20 6M20 6h-7M20 6v7"/>',down:'<path d="M4 6l16 12M20 18h-7M20 18v-7"/>',flat:'<path d="M3 12h17M14 6l6 6-6 6"/>',ice:'<path d="M12 2v20M3.5 7l17 10M20.5 7l-17 10"/><path d="M9 4l3 2 3-2M9 20l3-2 3 2"/>',rock:'<path d="M3 19l4-8 4 3 3-6 7 11z"/>',check:'<path d="M5 12l5 5 9-10"/>',phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',pause:'<path d="M9 5v14M15 5v14"/>',pin:'<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',coach:'<path d="M12 3v3M5 6l2 2M19 6l-2 2"/><path d="M8 14a4 4 0 1 1 8 0c0 2-2 3-2 5h-4c0-2-2-3-2-5z"/><path d="M10 21h4"/>'});
 // people in the app
 const PEOPLE={Emma:{c:'#12666B',rel:'Partner',d:30,b:35},Mom:{c:'#8B5CF6',rel:'Family',d:45,b:200},Jake:{c:'#3B78D9',rel:'Friend',d:55,b:-60},Linh:{c:'#F08F29',rel:'Friend',d:80,b:120},Sam:{c:'#389E5C',rel:'Friend',d:65,b:-150}};
 const EMERGENCY=['Emma','Mom'];
@@ -134,13 +134,19 @@ const I=(k,s=22,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0
 const SOLE='M100 12C150 12 176 62 173 122C170 172 150 202 150 252C150 302 166 342 161 392C156 442 131 458 100 458C69 458 47 442 44 397C41 352 54 302 51 252C49 202 29 162 29 112C29 52 54 12 100 12Z';
 
 /* ================= state ================= */
-function fresh(){return{foot:'right',mount:'shoe',started:false,steps:0,strides:[],strikes:{heel:0,mid:0,fore:0},impacts:[],pron:[],stancePitch:[],
+function fresh(){return{ob:0,dest:null,voice:true,foot:'right',mount:'shoe',started:false,steps:0,strides:[],strikes:{heel:0,mid:0,fore:0},impacts:[],pron:[],stancePitch:[],
  lastStrike:'—',lastImpact:0,stanceRoll:[],paused:false,uneven:0,lastUneven:0,slope:'flat',slopeForced:null,slips:0,offset:0,sharing:true,alertMode:'earbuds',buddy:true,
  buddies:{Emma:true,Mom:true,Jake:false},alertsSent:[],banner:null,pulseId:null,
  hazards:[{id:1,pos:14,type:'ice',label:'Black ice',reports:8,lap:-1},{id:2,pos:34,type:'slope',label:'Steep slope',reports:5,lap:-1}],nextId:3,
  goal:8000,terrainLog:[],distM:0,stanceStartT:0,onBreak:false,trek:null,addOpen:false,arTarget:null,mapZoom:1,mapPan:[0,0],mapSel:null,safeRoute:false,period:'day',check:null,lastStepT:0,coachOn:true,heelRun:0,myTrail:true,startT:Date.now()}}
 let S=fresh(), tab='run', emer=null, bannerTimer=null, toastTimer=null, sensorsSeen=false, heading=null, arBear={}, dragMoved=false, camStream=null, wakeLock=null;
 const TRAIL_M=60;
+// prototype route data: what other SoleMate users reported on the way (looping 60 m demo trail)
+const DEST={'River Valley Trail':[['up','Uphill',12,6],['ice','Ice',24,8],['down','Downhill',38,5],['uneven','Rocky ground',50,3]],
+ 'MacEwan Campus':[['ice','Ice',15,3],['up','Stairs up',32,9],['down','Ramp down',47,4]],
+ 'Hawrelak Park':[['down','Downhill',10,4],['ice','Ice',28,5],['up','Uphill',44,6]]};
+function setDest(name){S.dest=name;const r=DEST[name]||DEST['River Valley Trail'];S.hazards=r.map(([type,label,pos,reports],i)=>({id:i+1,type,label,pos,reports,lap:-1}));S.nextId=r.length+1;}
+const ICON={up:'up',down:'down',ice:'ice',uneven:'rock',slope:'up'};
 
 /* ================= sensing ================= */
 const grav={x:0,y:0,z:9.81};let calib=null,calibBuf=null,calibPhase=null;
@@ -288,7 +294,7 @@ function updateUneven(){
 function setSlopeState(s){if(s===S.slope)return;const prev=S.slope;S.slope=s;
  const steep=Math.abs(NAV.grade)>0.15&&!S.slopeForced;
  const say=s==='up'?(steep?'Steep uphill. Short steps, lean forward.':'Uphill.'):s==='down'?(steep?'Steep downhill. Slow down, short steps.':'Downhill. Shorter steps.'):(prev!=='flat'?'Flat ground.':'');
- if(say){if(S.alertMode==='earbuds')speak(say);toast((s==='flat'?'Flat ground':(steep?'Steep ':'')+(s==='up'?'uphill':'downhill'))+(NAV.grade&&s!=='flat'&&!S.slopeForced?` · ${Math.round(Math.abs(NAV.grade)*100)}% grade`:''));}
+ if(say){if(S.alertMode==='earbuds')speak(say);toast((s==='flat'?'Flat ground':(steep?'Steep ':'')+(s==='up'?(steep?'uphill':'Uphill'):(steep?'downhill':'Downhill')))+(NAV.grade&&s!=='flat'&&!S.slopeForced?` · ${Math.round(Math.abs(NAV.grade)*100)}% grade`:''));}
  S.terrainLog.push({t:clk,s});refreshLive();}
 
 /* ================= trail / hazards ================= */
@@ -298,26 +304,26 @@ const lap=()=>Math.floor(totalM()/TRAIL_M);
 function ahead(h){let d=h.pos-pos();if(d<=0)d+=TRAIL_M;return d;}
 function nextHazard(){let best=null;for(const h of S.hazards)if(!best||ahead(h)<ahead(best))best=h;return best;}
 function checkHazards(){const L=lap();for(const h of S.hazards){const d=h.pos-pos();if(d>0&&d<=ALERT_M&&h.lap!==L){h.lap=L;alertHazard(h,d);}}}
-const MSG={ice:'Ice reported ahead. Slow down and take short, flat steps.',slope:'Steep slope ahead. Take it easy.',uneven:'Uneven ground ahead. Watch your step.'};
-const HCOL={ice:'#DB4538',slope:'#F08F29',uneven:'#8B5CF6'};
+const MSG={ice:'Ice ahead. Slow down and take short, flat steps.',up:'Uphill ahead.',down:'Downhill ahead. Slow down.',slope:'Steep slope ahead. Take it easy.',uneven:'Rocky ground ahead. Watch your step.'};
+const HCOL={ice:'#DB4538',up:'#F08F29',down:'#3B78D9',slope:'#F08F29',uneven:'#8B5CF6'};
 function alertHazard(h,d){
  if(!S.sharing){toast('Hazard ahead, but terrain alerts are off. Turn on sharing in Map.');return;}
- S.banner={title:h.type==='ice'?'Ice ahead':h.type==='slope'?'Steep slope ahead':'Uneven ground ahead',sub:`${h.label} in ${d.toFixed(0)} m · ${h.reports} report${h.reports>1?'s':''}`,msg:MSG[h.type]||MSG.ice,color:HCOL[h.type]||C.red};
+ S.banner={title:`${h.label} ahead`,sub:`in ${d.toFixed(0)} m`,msg:MSG[h.type]||MSG.ice,color:HCOL[h.type]||C.red};
  S.pulseId=h.id;
  if(S.alertMode==='earbuds'){chime();speak(S.banner.msg);}else{chime();tab='map';}
  clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>{S.banner=null;S.pulseId=null;render();},8000);render();}
 function skipToHazard(){const h=nextHazard();if(!h)return;S.offset+=ahead(h)-ALERT_M;h.lap=-1;checkHazards();render();}
 function slip(src){S.slips++;let hid=null;
  if(S.sharing){hid=S.nextId++;S.hazards.push({id:hid,pos:Math.max(1,pos()),type:'ice',label:'Slip here · possible ice',reports:1,lap:lap()});}
- chime();speak('Slip detected. It may be icy here. Did you slip?');openCheck({kind:'slip',hid});render();}
+ chime();speak('Did you slip, or are you taking a break?');openCheck({kind:'slip',hid});render();}
 /* ---- quick "did that happen?" check, like Google Maps asks ---- */
 let checkTimer=null;
 function openCheck(c){S.check=c;clearTimeout(checkTimer);checkTimer=setTimeout(()=>{if(S.check===c){if(c.kind==='rest')S.lastStepT=Date.now();if(c.kind==='slip')toast(S.sharing?'Slip saved to the shared map · no name attached':'Slip saved to your report');closeCheck();}},12000);renderCheck();}
 function closeCheck(){S.check=null;clearTimeout(checkTimer);renderCheck();}
 function renderCheck(){const el=document.getElementById('check');const c=S.check;if(!c||emer){el.innerHTML='';return;}
- if(c.kind==='slip')el.innerHTML=`<div class="check"><b>Slip detected · possible ice</b><p>Did you slip? Your answer keeps the ice alerts accurate.</p><div class="row"><button class="w" data-act="ck-slip-yes">Yes, I slipped</button><button data-act="ck-slip-no">No</button><button data-act="ck-help">I fell</button></div></div>`;
- else el.innerHTML=`<div class="check"><b>Are you resting?</b><p>You haven’t moved for a while.</p><div class="row"><button class="w" data-act="ck-break">Taking a break</button><button data-act="ck-moving">I’m fine</button><button data-act="ck-help">I need help</button></div></div>`;}
-function startBreak(){S.onBreak=true;closeCheck();toast((S.buddy?'Your buddies see: Ryan is taking a break':'Break started')+' · walk to resume');render();}
+ if(c.kind==='slip')el.innerHTML=`<div class="check"><b>Did you slip?</b><p>Or are you taking a break?</p><div class="row"><button class="w" data-act="ck-slip-yes">I slipped</button><button data-act="ck-slip-break">Taking a break</button><button data-act="ck-help">I need help</button></div></div>`;
+ else el.innerHTML=`<div class="check"><b>Are you resting?</b><p>You stopped moving.</p><div class="row"><button class="w" data-act="ck-break">Taking a break</button><button data-act="ck-moving">I’m fine</button><button data-act="ck-help">I need help</button></div></div>`;}
+function startBreak(){S.onBreak=true;closeCheck();toast('Break started · walk to continue');render();}
 
 /* ================= audio ================= */
 let actx=null;
@@ -360,7 +366,7 @@ function analysis(){const n=S.strikes.heel+S.strikes.mid+S.strikes.fore;const no
 const pct=x=>Math.round(x*100)+'%';
 function mix(a,b,t){t=Math.max(0,Math.min(1,t));const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const A=p(a),B=p(b);return'rgb('+A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')+')';}
 const tg=(on,act)=>`<button class="toggle ${on?'on':''}" data-act="${act}" aria-label="toggle"></button>`;
-function navHTML(){const b=([k,l])=>`<button data-tab="${k}" class="${tab===k?'sel':''}">${I(k)}${l}</button>`;return[['run','Run'],['map','Map'],['report','Report']].map(b).join('')+`<button class="sosb" data-act="sos" aria-label="Emergency SOS">SOS<small>help</small></button>`+[['buddy','Group'],['ar','AR']].map(b).join('');}
+function navHTML(){const b=([k,l])=>`<button data-tab="${k}" class="${tab===k?'sel':''}">${I(k)}${l}</button>`;return[['run','Walk'],['map','Map'],['report','Report']].map(b).join('')+`<button class="sosb" data-act="sos" aria-label="Emergency SOS">SOS<small>help</small></button>`+[['buddy','Group'],['ar','AR']].map(b).join('');}
 function bannerHTML(){if(!S.banner)return'';return`<div class="banner" style="background:${S.banner.color}">${I('alert',28,'#fff')}<div><b>${S.banner.title}</b><span>${S.banner.sub}</span></div></div>${S.alertMode==='earbuds'?`<div class="pill dark" style="align-self:flex-start">${I('head',15,'#fff')} “${S.banner.msg}”</div>`:''}`;}
 function coachCue(a){if(S.onBreak)return'On a break. Start walking to resume.';
  if(a.score===null)return'Start walking. I’ll coach your landings and posture.';
@@ -376,48 +382,42 @@ function coachCue(a){if(S.onBreak)return'On a break. Start walking to resume.';
 function ringHTML(){const R=54,L=2*Math.PI*R,f=Math.min(1,S.steps/S.goal);
  return`<div style="position:relative;width:136px;height:136px;flex:none"><svg viewBox="0 0 136 136" width="136" height="136" style="transform:rotate(-90deg)"><circle cx="68" cy="68" r="${R}" stroke="var(--soft)" stroke-width="12" fill="none"/><circle cx="68" cy="68" r="${R}" stroke="var(--teal)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L*(1-f)}"/></svg>
  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><b id="vSteps" style="font-size:30px;font-weight:800;letter-spacing:-.04em">${S.steps.toLocaleString()}</b><span class="small">of ${S.goal.toLocaleString()} steps</span></div></div>`;}
-function runHTML(){const a=analysis();const h=nextHazard();const mins=Math.max(0,Math.round((Date.now()-S.startT)/60000));
- return`<div class="hdr"><div><div class="hT">Morning trek</div><div class="hS">Ryan · ${S.foot} ${S.mount==='sock'?'ankle':'shoe'} · ${S.onBreak?'<b style="color:var(--orange)">on a break</b>':S.paused?'<b style="color:var(--orange)">paused · phone in hand</b>':sensorsSeen?'sensors live':'no sensors yet'}</div></div><button class="pill dark" data-act="demo">${I('sliders',15,'#fff')} Demo</button></div>
+function runHTML(){const h=nextHazard();const sl=S.slope==='up'||S.slope==='down'?S.slope:'flat';
+ const col=sl==='up'?C.orange:sl==='down'?C.blue:C.green,name={flat:'Flat ground',up:'Uphill',down:'Downhill'}[sl];
+ const big=(icon,c,tag,title,sub,soft)=>`<div class="card" style="display:flex;align-items:center;gap:16px;padding:18px"><span style="width:60px;height:60px;border-radius:18px;background:${soft?c+'22':c};display:flex;align-items:center;justify-content:center;flex:none">${I(icon,30,soft?c:'#fff')}</span><div><div class="tag">${tag}</div><div style="font-size:23px;font-weight:800;letter-spacing:-.02em">${title}</div>${sub?`<div class="small">${sub}</div>`:''}</div></div>`;
+ return`<div class="hdr"><div><div class="hS">Walking to</div><div class="hT" style="font-size:24px">${S.dest||'River Valley Trail'}</div></div><button class="pill soft" data-act="demo">${I('sliders',15)} Demo</button></div>
  ${bannerHTML()}
- <div class="card" style="display:flex;gap:16px;align-items:center">${ringHTML()}<div style="display:flex;flex-direction:column;gap:10px;flex:1">
-  <div class="stat"><b id="vDist" style="font-size:22px">${(S.steps*STEP_LEN).toFixed(0)} m</b><span>Distance</span></div>
-  <div class="stat"><b id="vCad" style="font-size:22px">${a.cad}</b><span>Steps per minute</span></div>
-  <div class="stat"><b style="font-size:22px">${mins} min</b><span>Time</span></div></div></div>
- <div class="row"><span class="pill"><span class="d" style="background:${a.sc}"></span><span id="vStatus">${a.status}</span></span><span class="pill" id="vStrike">${S.lastStrike}</span>
- <span class="pill"><span class="d" style="background:${S.slope==='flat'?C.green:S.slope.startsWith('steep')||S.slope.startsWith('stairs')?C.red:C.orange}"></span><span id="vSlope">${TERR[S.slope]||'Flat ground'}${NAV.grade&&!S.slopeForced&&!S.slope.startsWith('stairs')?` · ${Math.round(NAV.grade*100)}%`:''}</span></span>${S.uneven?`<span class="pill"><span class="d" style="background:#8B5CF6"></span>Uneven ×${S.uneven}</span>`:''}</div>
- <div class="card"><div class="lrow" style="padding:0"><span style="width:40px;height:40px;border-radius:12px;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;flex:none">${I('coach',20,C.teal)}</span><div class="tx"><b>Form &amp; posture coach</b><span id="vCoach">${coachCue(a)}</span></div>${tg(S.coachOn,'coach')}</div></div>
- <button class="btn full" data-act="${S.onBreak?'resume':'break'}" style="display:flex;align-items:center;justify-content:center;gap:8px;${S.onBreak?'background:var(--orange);color:#fff':''}">${I(S.onBreak?'run':'pause',18)} ${S.onBreak?'Resume trek':'I’m taking a break'}</button>
- <div class="card"><div class="ctitle">Terrain alerts via</div><div class="seg"><button data-act="mode-earbuds" class="${S.alertMode==='earbuds'?'sel':''}">🎧 Earbuds</button><button data-act="mode-map" class="${S.alertMode==='map'?'sel':''}">🗺 Map</button></div>
- <p class="small" style="margin-top:10px">${!S.sharing?'Terrain sharing is off, so alerts are off.':h?`Next: <b style="color:var(--ink)">${h.label}</b>, ${Math.round(ahead(h))} m ahead`:''}</p></div>
+ ${S.onBreak?big('pause',C.orange,'Now','On a break','Walk to continue',true):big(sl,col,'Now',name,NAV.grade&&sl!=='flat'?Math.round(Math.abs(NAV.grade)*100)+'% grade':'',true)}
+ ${h?big(ICON[h.type]||'alert',HCOL[h.type]||C.red,'Next',h.label,`<b id="vNext">${Math.round(ahead(h))} m</b> ahead`,false):''}
+ <div class="card stats"><div class="stat"><b id="vSteps">${S.steps.toLocaleString()}</b><span>Steps</span></div><div class="stat"><b id="vDist">${(S.steps*STEP_LEN).toFixed(0)} m</b><span>Distance</span></div><div class="stat"><b>${S.slips}</b><span>Slips</span></div></div>
+ ${S.onBreak?`<button class="btn full" data-act="resume" style="background:var(--orange);color:#fff">Continue</button>`:`<button class="btn full" data-act="break">I’m taking a break</button>`}
  <div style="height:60px"></div>`;}
 function seg(m0,m1,col){let d='';for(let k=0;k<=24;k++){const p=at(m0+(m1-m0)*k/24);d+=(k?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}return`<path d="${d}" stroke="${col}" stroke-width="7" fill="none" stroke-linecap="round"/>`;}
 const PTS=[[34,350],[62,298],[108,262],[146,226],[166,176],[214,146],[246,96],[282,36]];
 const SEGL=(()=>{const L=[0];for(let i=1;i<PTS.length;i++)L.push(L[i-1]+Math.hypot(PTS[i][0]-PTS[i-1][0],PTS[i][1]-PTS[i-1][1]));return L})();
 function at(m){const f=Math.max(0,Math.min(1,m/TRAIL_M))*SEGL[SEGL.length-1];for(let i=1;i<PTS.length;i++)if(f<=SEGL[i]){const t=(f-SEGL[i-1])/(SEGL[i]-SEGL[i-1]);return[PTS[i-1][0]+(PTS[i][0]-PTS[i-1][0])*t,PTS[i-1][1]+(PTS[i][1]-PTS[i-1][1])*t];}return PTS[PTS.length-1];}
-const TYPEN={ice:'Ice / slippery',slope:'Steep slope',uneven:'Uneven ground'};
-const TIP={ice:'Walk slowly with short, flat steps, or take the safest route around it.',slope:'Short steps. Lean slightly forward going up, bend your knees going down.',uneven:'Rocks and roots. Slow down and watch your footing.'};
+const TYPEN={ice:'Ice',up:'Uphill',down:'Downhill',slope:'Steep slope',uneven:'Rocky ground'};
+const TIP={ice:'Short, flat steps.',up:'Short steps, lean forward.',down:'Slow down, bend your knees.',slope:'Take it easy.',uneven:'Watch your footing.'};
 const mapT=()=>`translate(${S.mapPan[0].toFixed(1)} ${S.mapPan[1].toFixed(1)}) translate(158 195) scale(${S.mapZoom}) translate(-158 -195)`;
 function mapHTML(){const p=at(pos());
  const pins=S.hazards.map(h=>{const q=at(h.pos),col=HCOL[h.type]||C.red;return`<g data-act="pin-${h.id}" style="cursor:pointer">${S.pulseId===h.id?`<circle class="pulse" cx="${q[0]}" cy="${q[1]}" r="12" fill="${col}"/>`:''}${S.mapSel===h.id?`<circle cx="${q[0]}" cy="${q[1]}" r="17" fill="none" stroke="${col}" stroke-width="3"/>`:''}<circle cx="${q[0]}" cy="${q[1]}" r="20" fill="transparent"/><circle cx="${q[0]}" cy="${q[1]}" r="11" fill="${col}" stroke="#fff" stroke-width="3"/><text x="${q[0]}" y="${q[1]+4}" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">!</text></g>`}).join('');
  let safe='';if(S.safeRoute){const a1=at(7),a2=at(22),m=at(14);safe=`<path d="M${a1[0]} ${a1[1]} Q${m[0]+70} ${m[1]+40} ${a2[0]} ${a2[1]}" stroke="${C.green}" stroke-width="5" stroke-dasharray="1 9" stroke-linecap="round" fill="none"/><text x="${m[0]+44}" y="${m[1]+34}" font-size="11" font-weight="700" fill="${C.green}">Safest route</text>`;}
  const sel=S.hazards.find(h=>h.id===S.mapSel);
- return`<div class="hdr"><div><div class="hT">Trail map</div><div class="hS">River valley trail · hazards shared by hikers</div></div></div>
+ return`<div class="hdr"><div><div class="hT">Map</div><div class="hS">${S.dest||'River Valley Trail'}</div></div></div>
  ${S.alertMode==='map'?bannerHTML():''}
  <div class="card" style="padding:8px;position:relative"><svg id="mapSvg" viewBox="0 0 316 390" style="width:100%;display:block;border-radius:16px;background:#E6EAE1;touch-action:none"><g id="mapG" transform="${mapT()}">
  <rect x="-600" y="-600" width="1500" height="1600" fill="#E6EAE1"/>
  <path d="M-300 230C60 200 120 300 200 260S330 300 620 300" stroke="#C6DAEA" stroke-width="30" fill="none"/><path d="M-300 124L620 86M116 -300L144 700" stroke="#fff" stroke-width="8" fill="none"/>
  <circle cx="40" cy="120" r="26" fill="#D3DEC9"/><circle cx="260" cy="250" r="34" fill="#D3DEC9"/><circle cx="230" cy="340" r="22" fill="#D3DEC9"/>
- ${seg(0,18,C.green)}${seg(18,36,C.blue)}${seg(36,50,C.ink)}${seg(50,60,C.red)}${safe}${pins}
+ ${seg(0,60,'#8E9A94')}${safe}${pins}
  <circle id="runHalo" cx="${p[0]}" cy="${p[1]}" r="16" fill="${C.blue}" opacity=".2"/><circle id="runDot" cx="${p[0]}" cy="${p[1]}" r="7" fill="${C.blue}" stroke="#fff" stroke-width="3"/></g></svg>
  <div class="mapbtns"><button data-act="zin" aria-label="Zoom in">+</button><button data-act="zout" aria-label="Zoom out">−</button><button data-act="zme" aria-label="Find me" style="display:flex;align-items:center;justify-content:center">${I('pin',17,C.blue)}</button></div>
- <div class="small" style="position:absolute;left:18px;bottom:16px;background:rgba(255,255,255,.9);padding:5px 9px;border-radius:9px">Drag to look around · tap a pin</div></div>
+ </div>
  ${sel?`<div class="card"><div class="lrow" style="padding:0"><span class="d" style="width:14px;height:14px;background:${HCOL[sel.type]||C.red}"></span><div class="tx"><b>${sel.label}</b><span>${TYPEN[sel.type]} · ${sel.reports} report${sel.reports>1?'s':''} · ${Math.round(ahead(sel))} m ahead</span></div><button class="pill soft" data-act="pin-close" aria-label="Close" style="padding:7px">${I('x',14)}</button></div>
- <p class="small" style="margin-top:8px">${TIP[sel.type]}</p><button class="btn ${S.safeRoute?'':'dark'} full" data-act="saferoute" style="margin-top:10px">${S.safeRoute?'Hide safest route':'Show the safest route around it'}</button></div>`:''}
- <div class="card"><div class="ctitle">Trail difficulty <span class="small">· colour of the path</span></div><div class="leg">
- ${[[C.green,'Easy','Flat, smooth path'],[C.blue,'Moderate','Gentle slopes'],[C.ink,'Difficult','Steep or rocky'],[C.red,'Hazard zone','Danger reported']].map(([c,l,d])=>`<div><span style="width:20px;height:7px;border-radius:9px;background:${c};margin-top:6px;flex:none"></span><div><b>${l}</b><span>${d}</span></div></div>`).join('')}</div>
- <div class="ctitle" style="margin-top:14px">Pins <span class="small">· reported by hikers</span></div><div class="row">${[['ice','Ice / slip'],['slope','Steep slope'],['uneven','Uneven']].map(([k,l])=>`<span class="pill soft"><span class="d" style="width:14px;height:14px;background:${HCOL[k]};color:#fff;font-size:9px;font-weight:800;display:inline-flex;align-items:center;justify-content:center">!</span>${l}</span>`).join('')}</div></div>
- <div class="card"><div class="lrow"><div class="tx"><b>Share terrain data</b><span>${S.sharing?'On · only the ground, never you':'Off · terrain alerts are off'}</span></div>${tg(S.sharing,'sharing')}</div></div>
- <div class="card"><div class="ctitle">Reported hazards</div>${S.hazards.map(h=>`<button class="lrow" data-act="pin-${h.id}" style="width:100%;text-align:left"><span class="d" style="width:10px;height:10px;background:${HCOL[h.type]||C.red}"></span><div class="tx"><b>${h.label}</b><span>${h.reports} report${h.reports>1?'s':''} · ${Math.round(ahead(h))} m ahead</span></div><span class="small">View ›</span></button>`).join('')}</div><div style="height:60px"></div>`;}
+ <p class="small" style="margin-top:8px">${TIP[sel.type]}</p><button class="btn ${S.safeRoute?'':'dark'} full" data-act="saferoute" style="margin-top:10px">${S.safeRoute?'Hide safe route':'Safe route'}</button></div>`:''}
+ <div class="row">${[['up','Uphill'],['down','Downhill'],['ice','Ice'],['uneven','Rocky']].map(([k,l])=>`<span class="pill soft"><span class="d" style="width:12px;height:12px;background:${HCOL[k]}"></span>${l}</span>`).join('')}</div>
+ <div class="card"><div class="lrow"><div class="tx"><b>Share terrain data</b><span>${S.sharing?'Only the ground, never you':'Off · no alerts'}</span></div>${tg(S.sharing,'sharing')}</div></div>
+ <div class="card"><div class="ctitle">On the way</div>${S.hazards.map(h=>`<button class="lrow" data-act="pin-${h.id}" style="width:100%;text-align:left"><span class="d" style="width:10px;height:10px;background:${HCOL[h.type]||C.red}"></span><div class="tx"><b>${h.label}</b><span>${h.reports} report${h.reports>1?'s':''} · ${Math.round(ahead(h))} m ahead</span></div><span class="small">View ›</span></button>`).join('')}</div><div style="height:60px"></div>`;}
 function sole(share,w){const m=Math.max(...Object.values(share))||1;const col=x=>x<.5?mix('#12666B','#F08F29',x*2):mix('#F08F29','#DB4538',(x-.5)*2);
  const c=(z,cx,cy,r)=>{const v=share[z]/m;return`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${col(v)}" opacity="${(.2+v*.8).toFixed(2)}"/>`};
  return`<svg viewBox="0 0 200 470" width="${w}" style="display:block;margin:0 auto${S.foot==='left'?';transform:scaleX(-1)':''}"><defs><filter id="bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter><clipPath id="cp"><path d="${SOLE}"/></clipPath></defs><path d="${SOLE}" fill="#F1EEE9" stroke="#D9D4CC" stroke-width="3"/><g clip-path="url(#cp)" filter="url(#bl)">${c('toe',72,62,34)}${c('inner',70,160,40)}${c('outer',134,176,36)}${c('heel',100,385,50)}</g></svg>`;}
@@ -437,46 +437,43 @@ function trendHTML(a){const wk=S.period==='week';const todayRow=['Sun',S.steps,a
  const best=rows.reduce((b,r)=>r[1]>b[1]?r:b,rows[0]);
  return`<div class="card"><div class="ctitle">${wk?'Steps and Form Score per day':'Steps and Form Score per week'}</div>${chart(rows)}</div>
  <div class="grid2"><div class="mini"><b>${total.toLocaleString()}</b><span>Total steps</span></div><div class="mini"><b>${(total*STEP_LEN/1000).toFixed(1)} km</b><span>Distance</span></div><div class="mini"><b>${av} / 100</b><span>Average Form Score</span></div><div class="mini"><b>${(wk?1:4)+S.slips}</b><span>Slips</span></div></div>
- <div class="card"><div class="ai" style="margin-top:0">✦ Your Form Score went from ${first} to ${last} ${wk?'this week':'this month'}${last>=first?', nice progress':''}. Most active ${wk?'day':'week'}: ${best[0]} (${(best[1]/1000).toFixed(1)}k steps). ${wk?'You landed softer on Thursday and Friday.':'Your heel strikes dropped every week.'}</div></div>
- <div class="card"><div class="tag">Goal for next ${wk?'week':'month'}</div><div style="font-weight:700;margin-top:6px;font-size:15px">${wk?'Walk 8,000 steps on 5 days and keep your Form Score above 75.':'Reach an average Form Score of 80 with soft landings.'}</div></div>${doctorHTML()}<div style="height:60px"></div>`;}
-function doctorHTML(){return`<div class="card"><div class="ctitle">Share with your doctor</div><p class="small">Your report stays private on your phone. Nothing is sent until you tap the button. Then your doctor gets a private link to your report (Form Score, foot pressure, steps). Your location is never included. The link expires in 7 days.</p><button class="btn dark full" data-act="doctor" style="margin-top:10px">Create a link for my doctor</button></div>`;}
+ <div class="card"><div class="ai" style="margin-top:0">✦ Form Score ${first} → ${last}. Best ${wk?'day':'week'}: ${best[0]}.</div></div>
+ ${doctorHTML()}<div style="height:60px"></div>`;}
+function doctorHTML(){return`<div class="card"><div class="lrow" style="padding:0"><div class="tx"><b>Share with your doctor</b><span>Private link · no location · 7 days</span></div><button class="btn sm dark" data-act="doctor">Share</button></div></div>`;}
 function reportHTML(){const a=analysis();
  const head=`<div class="hdr"><div><div class="hT">Report</div><div class="hS">${S.period==='day'?'Today':S.period==='week'?'This week':'This month'} · Ryan</div></div></div>${periodSeg()}`;
  if(S.period!=='day')return head+trendHTML(a);
  if(a.score===null)return head+`<div class="card small">Walk a few steps first. Your Form Score, foot pressure and tips appear here once SoleMate has a few steps.</div>${doctorHTML()}`;
  const issues=[];if(a.landing==='Hard')issues.push('your landings are hard');if(a.rolling==='Rolling in')issues.push('your foot rolls inward');if(a.rolling==='Rolling out')issues.push('your foot rolls outward');if(a.cv>.2)issues.push('your rhythm is uneven');if(S.slips)issues.push(`you slipped ${S.slips} time${S.slips>1?'s':''}`);
- const sum=issues.length?`Nice work, Ryan. Today ${issues.join(', ')}. Small fixes now help prevent knee and shin pain later.`:'Clean form today, Ryan. Soft landings and a steady rhythm. Keep it up.';
+ const sum=issues.length?`Today ${issues.join(', ')}.`:'Clean form today. Keep it up.';
  const tip=a.landing==='Hard'?'Take shorter, quicker steps and land softly under your hips.':a.rolling==='Rolling in'?'2-min ankle and arch warm-up: calf raises + towel scrunches.':a.cv>.2?'Try walking to a steady beat (about 110 steps a minute).':'Same pace tomorrow, and add 5 minutes.';
  return head+`<div class="card"><div class="tag">Form Score</div><div style="display:flex;gap:10px;align-items:flex-end;margin-top:6px"><div class="big">${a.score}</div><div style="padding-bottom:6px"><span style="font-size:16px;font-weight:700;color:var(--mute)">/ 100</span><div class="small" style="color:${a.sc};font-weight:700">${a.status.replace('Form: ','')}</div></div></div>
- <p class="small" style="margin-top:8px">How healthy your steps were today, based on how you land, roll and keep rhythm. <b style="color:${C.green}">80+ good</b> · <b style="color:${C.orange}">62–79 watch it</b> · <b style="color:${C.red}">under 62 needs work</b></p>
+ <p class="small" style="margin-top:6px"><b style="color:${C.green}">80+ good</b> · <b style="color:${C.orange}">62–79 OK</b> · <b style="color:${C.red}">under 62 work on it</b></p>
  <div style="margin-top:4px">${scoreParts(a).map(([l,v])=>`<div class="brow"><span>${l}</span><div class="bar"><i style="width:${v}%;background:${barCol(v)}"></i></div><b>${v}</b></div>`).join('')}</div>
  <div class="ai">✦ ${sum}</div></div>
- <div class="card"><div class="ctitle">Foot pressure <span class="small">· where your weight lands (estimated)</span></div>${sole(a.share,110)}
+ <div class="card"><div class="ctitle">Foot pressure</div>${sole(a.share,110)}
  <div style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11.5px;color:var(--mute)">Low<div style="flex:1;height:8px;border-radius:9px;background:linear-gradient(90deg,#12666B,#F08F29,#DB4538)"></div>High</div>
  <div class="row" style="margin-top:10px;justify-content:center">${[['Toes','toe'],['Inner arch','inner'],['Outer edge','outer'],['Heel','heel']].map(([l,k])=>`<span class="pill soft">${l} <b>${pct(a.share[k])}</b></span>`).join('')}</div></div>
- <div class="grid2"><div class="mini"><span>Foot strike</span><b>${a.strike}</b><span>Which part lands first</span></div><div class="mini"><span>Landing force</span><b>${a.landing} · ${a.imp.toFixed(1)} g</b><span>Lower is softer</span></div><div class="mini"><span>Foot roll</span><b>${a.rolling} · ${a.pr.toFixed(0)}°</b><span>0° is straight</span></div><div class="mini"><span>Rhythm</span><b>${a.cv?Math.round((1-Math.min(a.cv,1))*100)+'% steady':'—'}</b><span>How even your steps are</span></div></div>
- ${a.landing==='Hard'||a.rolling!=='Neutral'&&a.rolling!=='—'?`<div class="risk">${I('alert',22,C.orange)}<div><b style="font-size:14px">${a.landing==='Hard'?'Shin & knee risk':'Inner knee risk'}</b><div class="small">${a.landing==='Hard'?`Average landing ${a.imp.toFixed(1)} g. Softer landings reduce stress.`:`Foot tilts ${Math.abs(a.pr).toFixed(0)}° ${a.pr>0?'inward':'outward'} when planted.`}</div></div></div>`:''}
  <div class="card"><div class="tag">Tip for tomorrow</div><div style="font-weight:700;margin-top:6px;font-size:15px">${tip}</div></div>
  ${doctorHTML()}<div style="height:60px"></div>`;}
 const memberDist=k=>Math.max(0,Math.round(PEOPLE[k].d-S.steps*STEP_LEN*.5));
 function trekHTML(){const t=S.trek;
- if(!t)return`<div class="card"><div class="tag">Group trek</div><div style="font-size:18px;font-weight:800;margin-top:6px">Hike together, never get lost</div><p class="small" style="margin-top:4px">Everyone in the group sees each other’s footprints and an AR arrow, even with no signal.</p>
- <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0">${['Start a group trek','Add the friends hiking with you','Open AR to follow their footprints'].map((x,i)=>`<div class="mount"><span class="n">${i+1}</span><span class="small" style="color:var(--ink);padding-top:4px">${x}</span></div>`).join('')}</div>
+ if(!t)return`<div class="card"><div class="tag">Group trek</div><div style="font-size:18px;font-weight:800;margin:6px 0 14px">Hike together, never get lost</div>
  <button class="btn dark full" data-act="trek-start">Start a group trek</button><button class="btn full" data-act="trek-join" style="margin-top:8px">Join with a code</button></div>`;
  const avail=Object.keys(PEOPLE).filter(k=>!t.members.includes(k));
  return`<div class="card"><div class="hdr"><div><div class="tag">Group trek · live</div><div style="font-size:18px;font-weight:800;margin-top:4px">River valley trek</div><div class="small">Invite code <b style="color:var(--ink)">${t.code}</b></div></div><button class="pill soft" data-act="trek-end">End trek</button></div>
  <div style="margin-top:10px"><div class="lrow"><div class="av" style="background:var(--ink)">R</div><div class="tx"><b>Ryan (you)</b><span>${S.onBreak?'Taking a break':(S.steps*STEP_LEN).toFixed(0)+' m walked'}</span></div></div>
  ${t.members.map(k=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div class="tx"><b>${k}</b><span>${memberDist(k)} m away</span></div><button class="btn sm dark" data-act="find-${k}">Find in AR</button><button class="pill soft" data-act="rm-${k}" aria-label="Remove ${k}" style="padding:8px">${I('x',14)}</button></div>`).join('')||'<p class="small" style="padding:4px 0">No one yet. Add the people hiking with you.</p>'}</div>
  ${S.addOpen?`<div style="border-top:1px solid var(--soft);margin-top:8px;padding-top:8px"><div class="tag" style="margin-bottom:4px">Add people</div>${avail.map(k=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div class="tx"><b>${k}</b><span>${PEOPLE[k].rel}</span></div><button class="btn sm" data-act="add-${k}">${I('plus',14)} Add</button></div>`).join('')||'<p class="small">Everyone is in the group.</p>'}<button class="btn full" data-act="add-close" style="margin-top:6px">Done</button></div>`:`<button class="btn full" data-act="add-open" style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px">${I('plus',16)} Add people</button>`}</div>`;}
-function buddyHTML(){const a=analysis();return`<div class="hdr"><div><div class="hT">Group &amp; safety</div><div class="hS">Group trek · Buddy Mode · Emergency</div></div></div>
+function buddyHTML(){const a=analysis();return`<div class="hdr"><div><div class="hT">Group</div></div></div>
  ${trekHTML()}
  <div class="card"><div class="lrow" style="padding:0"><div class="tx"><b style="font-size:16px">Buddy Mode</b><span>Only on when you turn it on</span></div>${tg(S.buddy,'buddy')}</div>
  <div style="opacity:${S.buddy?1:.45};margin-top:10px;background:var(--bg);border-radius:16px;padding:12px"><div class="tag">What your buddies see</div><div style="font-size:15px;font-weight:700;margin-top:6px">${!S.buddy?'Ryan is offline':S.onBreak?'Ryan is taking a break ☕':'Ryan is on the river valley trail'}</div>
  ${S.buddy?`<div class="row" style="margin-top:8px"><span class="pill"><span class="d" style="background:${a.sc}"></span>${a.status}</span><span class="pill">${(S.steps*STEP_LEN).toFixed(0)} m</span><span class="pill"><span class="d" style="background:${S.slips?C.orange:C.green}"></span>${S.slips?S.slips+' slip'+(S.slips>1?'s':''):'No slips'}</span></div>`:''}</div>
  <div class="ctitle" style="margin-top:12px">Who can see you</div>${[['Emma','Emma (partner)','Location + foot status'],['Mom','Mom','Location only'],['Jake','Jake','Friend']].map(([k,n,s])=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}">${n[0]}</div><div class="tx"><b>${n}</b><span>${S.buddies[k]?s:'Off'}</span></div>${tg(S.buddies[k],'b-'+k)}</div>`).join('')}</div>
- <div class="card" style="box-shadow:0 0 0 2px ${C.red} inset,var(--sh)"><div class="ctitle" style="color:${C.red};font-size:16px">Emergency</div><p class="small">After a hard fall your phone keeps asking “Are you okay?” until you answer. No response? We’ll alert ${EMERGENCY.join(', ')}, then the ambulance.</p>
+ <div class="card" style="box-shadow:0 0 0 2px ${C.red} inset,var(--sh)"><div class="ctitle" style="color:${C.red};font-size:16px">Emergency</div><p class="small">No answer after a hard fall? We alert:</p>
  ${[...EMERGENCY.map(k=>[k[0],k,PEOPLE[k].rel,PEOPLE[k].c]),['+','Ambulance','911 · if still no response',C.red]].map(([i,n,s,c],j)=>`<div class="lrow"><div class="av" style="background:${c}">${j===2?I('phone',17,'#fff'):i}</div><div class="tx"><b>${j+1}. ${n}</b><span>${s}</span></div></div>`).join('')}
- ${S.alertsSent.length?`<p class="small">Alerts sent today: ${S.alertsSent.join(', ')}</p>`:''}<button class="btn red full" data-act="sos" style="font-size:16px;padding:16px;margin-top:8px">Get help now</button><button class="btn full" data-act="fall" style="margin-top:8px">Test a hard fall</button></div><div style="height:60px"></div>`;}
+ ${S.alertsSent.length?`<p class="small">Alerts sent today: ${S.alertsSent.join(', ')}</p>`:''}<button class="btn red full" data-act="sos" style="font-size:16px;padding:16px;margin-top:8px">Get help now</button></div><div style="height:60px"></div>`;}
 function arHTML(){const mem=S.trek?S.trek.members:[];if(!S.arTarget||!mem.includes(S.arTarget))S.arTarget=mem[0]||null;const k=S.arTarget;S.arPins=S.arPins||[];
  const col=k?PEOPLE[k].c:'#F08F29';const em=k?memberDist(k):0;const fps=[[175,560,22],[218,505,19],[182,456,16],[212,414,14],[188,378,12],[206,348,10],[193,322,9],[203,300,7]];
  return`<div class="arwrap"><video id="cam" autoplay playsinline muted></video>
@@ -508,7 +505,7 @@ setInterval(()=>{if(S.started&&!emer&&!calibBuf&&!S.check&&!S.onBreak&&S.steps>0
 /* ================= overlays ================= */
 function renderOverlay(){const o=document.getElementById('overlay');
  if(!S.started){o.innerHTML=startHTML();return;}
- if(calibBuf){o.innerHTML=`<div class="over" style="background:var(--bg)"><div class="ring"><svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="88" stroke="var(--soft)" stroke-width="9" fill="none"/></svg><div class="n" id="calN">3<small>${calibPhase==='lean'?'hold':'stand still'}</small></div></div><h3>${calibPhase==='lean'?(S.mount==='sock'?'Bend your knee forward':'Lift your toes'):'Stand still'}</h3><p class="small">${calibPhase==='lean'?(S.mount==='sock'?'Keep your foot flat on the floor and push your knee forward, then hold.':'Keep your heel down, lift your toes up, then hold.'):'Step 1 of 2 · stand straight and still.'}</p></div>`;return;}
+ if(calibBuf){o.innerHTML=`<div class="over" style="background:var(--bg)"><div class="ring"><svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="88" stroke="var(--soft)" stroke-width="9" fill="none"/></svg><div class="n" id="calN">3<small>${calibPhase==='lean'?'hold':'stand still'}</small></div></div><h3>${calibPhase==='lean'?'Lift your toes':'Stand still'}</h3><p class="small">${calibPhase==='lean'?'Heel down, toes up. Hold.':'Getting ready…'}</p></div>`;return;}
  if(!emer){o.innerHTML='';renderCheck();return;}
  document.getElementById('check').innerHTML='';
  const soft='background:rgba(255,255,255,.18);color:#fff';
@@ -528,16 +525,35 @@ function renderOverlay(){const o=document.getElementById('overlay');
   <div class="ladder">${[...EMERGENCY.map(k=>k+' alerted'),'Ambulance (911) called · demo only'].map(t=>`<div><span class="k">✓</span>${t}</div>`).join('')}</div>
   <p style="font-size:14px;opacity:.85">They can see your location: river valley trail, ${(S.steps*STEP_LEN).toFixed(0)} m in. Stay where you are.</p>
   <button class="btn full" style="background:#fff;color:${C.ink}" data-act="ok-after">I’m OK now, tell everyone</button><button class="btn full" style="${soft}" data-act="close">Close</button></div>`;}
-function startHTML(){return`<div class="over" style="background:var(--bg);justify-content:flex-start;padding-top:calc(env(safe-area-inset-top) + 40px);overflow-y:auto">
- <div class="tag">DESN444 · Prototype</div><h3 style="font-size:36px">SoleMate</h3><p class="small" style="max-width:320px">Your phone acts as the smart insole. It senses your steps, landings, slopes, slips and falls with its real motion sensors.</p>
- <div class="card" style="width:100%;display:flex;flex-direction:column;gap:12px">
-  <div class="mount"><span class="n">1</span><span class="small" style="color:var(--ink)">${S.mount==='sock'?'Slide the phone <b>upright into your sock</b> on the side of your ankle/shin, top of the phone pointing up. Pull the sock up so it can’t wobble.':'Put the phone <b>flat on top of your shoe</b>, screen up, top of the phone toward your toes. Hold it with an armband or rubber bands.'}</span></div>
-  <div class="mount"><span class="n">2</span><span class="small" style="color:var(--ink)">Put in your <b>earbuds</b> (or turn the volume up).</span></div>
-  <div class="mount"><span class="n">3</span><span class="small" style="color:var(--ink)">Tap start, <b>stand still 3 s</b>, then <b>${S.mount==='sock'?'bend your knee forward':'lift your toes'} 3 s</b> to calibrate.</span></div></div>
- <div style="width:100%"><div class="tag" style="text-align:left;margin-bottom:8px">Phone is</div><div class="seg"><button data-act="mount-sock" class="${S.mount==='sock'?'sel':''}">In my sock</button><button data-act="mount-shoe" class="${S.mount==='shoe'?'sel':''}">On my shoe</button></div></div>
- <div style="width:100%"><div class="tag" style="text-align:left;margin-bottom:8px">On my</div><div class="seg"><button data-act="foot-left" class="${S.foot==='left'?'sel':''}">Left leg</button><button data-act="foot-right" class="${S.foot==='right'?'sel':''}">Right leg</button></div></div>
- <button class="btn dark full" data-act="start" style="font-size:16px;padding:16px">Start SoleMate</button>
- <p class="small">No phone sensors? Use the Demo button on the Run screen.</p></div>`;}
+function insoleArt(){return`<svg viewBox="0 0 260 170" width="240" aria-hidden="true"><rect x="22" y="22" width="70" height="130" rx="14" fill="${C.ink}"/><rect x="30" y="34" width="54" height="104" rx="6" fill="#2b2f33"/><circle cx="57" cy="145" r="3" fill="#555"/>
+ <path d="M112 86h30M134 78l8 8-8 8" stroke="${C.teal}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+ <g transform="translate(160 8) scale(.33)"><path d="${SOLE}" fill="#E3EFEE" stroke="${C.teal}" stroke-width="6"/><circle cx="72" cy="70" r="26" fill="${C.orange}" opacity=".55"/><circle cx="100" cy="380" r="36" fill="${C.red}" opacity=".45"/><circle cx="76" cy="170" r="28" fill="${C.teal}" opacity=".35"/></g></svg>`;}
+function footArt(){return`<svg viewBox="0 0 300 190" width="270" aria-hidden="true"><rect x="64" y="0" width="58" height="104" rx="10" fill="#D9D4CC"/>
+ <path d="M64 90h58v20c40 2 96 14 132 34 14 8 12 30-6 30H74c-14 0-22-10-22-22z" fill="#E3EFEE" stroke="${C.teal}" stroke-width="3"/>
+ <path d="M60 84h66" stroke="${C.teal}" stroke-width="10" stroke-linecap="round"/>
+ <g transform="rotate(14 180 118)"><rect x="128" y="104" width="94" height="20" rx="6" fill="${C.ink}"/><rect x="134" y="108" width="82" height="12" rx="3" fill="#3a3f44"/></g>
+ <path d="M236 150l20 0M248 142l8 8-8 8" stroke="${C.orange}" stroke-width="3" fill="none" stroke-linecap="round"/><text x="232" y="178" font-size="12" font-weight="700" fill="${C.orange}" font-family="Inter">toes</text></svg>`;}
+function obDots(i){return`<div style="display:flex;gap:6px;justify-content:center">${[0,1,2,3].map(k=>`<span style="width:${k===i?22:7}px;height:7px;border-radius:9px;background:${k===i?C.ink:'#D6D1C9'};transition:width .2s"></span>`).join('')}</div>`;}
+function startHTML(){const ob=S.ob||0;
+ const wrap=(inner,btns)=>`<div class="over" style="background:var(--bg);justify-content:space-between;padding:calc(env(safe-area-inset-top) + 34px) 24px calc(env(safe-area-inset-bottom) + 26px);overflow-y:auto"><div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px">${inner}</div><div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-top:20px">${obDots(ob)}${btns}</div></div>`;
+ const back=`<button class="btn full" style="background:none;color:var(--mute);padding:6px" data-act="ob-back">Back</button>`;
+ if(ob===0)return wrap(`<div class="tag">Prototype</div><h3 style="font-size:42px">SoleMate</h3>${insoleArt()}<p style="font-size:18px;font-weight:700;max-width:290px;line-height:1.35">Your phone acts as the smart insole.</p><p class="small" style="max-width:280px">In the real product, the sensors are inside the insole.</p>
+  <div class="row" style="justify-content:center">${[['flat','Terrain ahead'],['ice','Slip check'],['phone','Fall help']].map(([i,l])=>`<span class="pill">${I(i,15,C.teal)}${l}</span>`).join('')}</div>`,
+  `<button class="btn dark full" style="font-size:16px;padding:16px" data-act="ob-next">Start</button>`);
+ if(ob===1)return wrap(`<h3>Put your phone in your right sock</h3>${footArt()}
+  <div class="card" style="width:100%;display:flex;flex-direction:column;gap:12px">${['Flat on top of your foot','Screen up, top toward your toes','Pull the sock up tight'].map((x,i)=>`<div class="mount" style="align-items:center"><span class="n">${i+1}</span><b style="font-size:15px">${x}</b></div>`).join('')}</div>`,
+  `<button class="btn dark full" style="font-size:16px;padding:16px" data-act="ob-next">Done</button>${back}`);
+ if(ob===2)return wrap(`<span style="width:84px;height:84px;border-radius:26px;background:#E3EFEE;display:flex;align-items:center;justify-content:center">${I('head',42,C.teal)}</span><h3>Voice alerts?</h3><p class="small" style="font-size:14px">Hear alerts while you walk. No need to look at your phone.</p>
+  <div style="width:100%;display:flex;flex-direction:column;gap:10px">
+   <button class="card" data-act="ob-voice" style="display:flex;align-items:center;gap:12px;text-align:left;box-shadow:0 0 0 2px ${C.teal} inset,var(--sh)"><span style="width:26px;height:26px;border-radius:50%;background:${C.teal};display:flex;align-items:center;justify-content:center;flex:none">${I('check',16,'#fff')}</span><b style="font-size:16px">Yes, talk to me</b></button>
+   <div class="card" aria-disabled="true" style="display:flex;align-items:center;gap:12px;opacity:.4"><span style="width:26px;height:26px;border-radius:50%;border:2px solid #C9C3BA;flex:none"></span><b style="font-size:16px">No</b><span class="small" style="margin-left:auto">Not in prototype</span></div></div>`,
+  `<button class="btn dark full" style="font-size:16px;padding:16px" data-act="ob-next">Next</button>${back}`);
+ const d=S.dest,r=d?(DEST[d]||DEST['River Valley Trail']):null;
+ return wrap(`<h3>Where are you going?</h3>
+  <div style="width:100%;display:flex;gap:8px"><input id="destIn" placeholder="Search a place" value="${d&&!DEST[d]?d:''}" style="flex:1;font:inherit;font-size:15px;padding:13px 16px;border-radius:99px;border:0;background:#fff;box-shadow:var(--sh);outline:none"><button class="btn dark" data-act="dest-go" style="padding:13px 16px">Go</button></div>
+  <div style="width:100%;display:flex;flex-direction:column;gap:8px">${Object.keys(DEST).map(k=>`<button class="lrow card" data-act="dest-${k}" style="padding:12px 14px;text-align:left;${d===k?`box-shadow:0 0 0 2px ${C.teal} inset,var(--sh)`:''}">${I('pin',18,d===k?C.teal:'#9b968e')}<div class="tx"><b>${k}</b></div></button>`).join('')}</div>
+  ${r?`<div class="card" style="width:100%"><div class="tag" style="margin-bottom:8px">On the way</div><div class="row">${r.map(([t,l])=>`<span class="pill soft">${I(ICON[t],15,HCOL[t])}${l}</span>`).join('')}</div></div>`:''}`,
+  `<button class="btn dark full" style="font-size:16px;padding:16px;${d?'':'opacity:.4'}" data-act="${d?'start':'ob-need'}">Start walking</button>${back}`);}
 function demoSheet(open){const s=document.getElementById('sheet');s.classList.toggle('open',open);if(!open)return;
  s.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b style="font-size:17px">Demo controls</b><button class="pill soft" data-act="demo-close">Close</button></div>
  <p class="small" style="margin-bottom:12px">Backup for the live demo. Real sensors keep working at the same time.</p>
@@ -592,6 +608,12 @@ document.getElementById('app').addEventListener('click',e=>{
  if(a==='foot-left'||a==='foot-right'){S.foot=a.slice(5);renderOverlay();return;}
  if(a==='mount-sock'||a==='mount-shoe'){S.mount=a.slice(6);renderOverlay();return;}
  if(a==='start'){start();return;}
+ if(a==='ob-next'){S.ob=(S.ob||0)+1;renderOverlay();return;}
+ if(a==='ob-back'){S.ob=Math.max(0,(S.ob||0)-1);renderOverlay();return;}
+ if(a==='ob-voice'){S.voice=true;S.alertMode='earbuds';return;}
+ if(a==='ob-need'){toast('Pick where you are going');return;}
+ if(a==='dest-go'){const v=(document.getElementById('destIn')||{}).value||'';const k=Object.keys(DEST).find(x=>x.toLowerCase().includes(v.trim().toLowerCase())&&v.trim());setDest(k||v.trim()||'River Valley Trail');renderOverlay();return;}
+ if(a.startsWith('dest-')){setDest(a.slice(5));renderOverlay();return;}
  if(a==='demo'){demoSheet(true);return;}if(a==='demo-close'){demoSheet(false);return;}
  // emergency
  if(a==='sos'){demoSheet(false);fall('sos');return;}
@@ -601,10 +623,11 @@ document.getElementById('app').addEventListener('click',e=>{
  if(a==='close'){emer=null;renderOverlay();return;}
  if(a==='ok-after'){emer=null;toast(`We told ${EMERGENCY.join(', ')} and 911 you’re okay`);renderOverlay();return;}
  // quick checks
- if(a==='ck-slip-yes'){toast(S.sharing?'Slip saved to the shared map · no name attached':'Slip saved to your report');closeCheck();render();return;}
+ if(a==='ck-slip-yes'){toast('Saved · others will be warned here');closeCheck();render();return;}
  if(a==='ck-slip-no'){const id=S.check&&S.check.hid;S.hazards=S.hazards.filter(h=>h.id!==id);S.slips=Math.max(0,S.slips-1);toast('Thanks · not added to the map');closeCheck();render();return;}
  if(a==='ck-help'){closeCheck();fall('check');return;}
  if(a==='ck-break'){startBreak();return;}
+ if(a==='ck-slip-break'){const id=S.check&&S.check.hid;S.hazards=S.hazards.filter(h=>h.id!==id);S.slips=Math.max(0,S.slips-1);startBreak();return;}
  if(a==='ck-moving'){S.lastStepT=Date.now();closeCheck();return;}
  if(a==='break'){startBreak();return;}
  if(a==='resume'){S.onBreak=false;S.lastStepT=Date.now();toast('Break ended');}
@@ -647,8 +670,9 @@ document.getElementById('app').addEventListener('click',e=>{
  else if(a.startsWith('slip-')){SLIP_TH=parseFloat(a.slice(5));demoSheet(true);}
  else if(a.startsWith('len-')){STEP_LEN=parseFloat(a.slice(4));demoSheet(true);}
  else if(a==='d-recal'){demoSheet(false);calibrate();return;}
- else if(a==='d-reset'){const f=S.foot,mt=S.mount;S=fresh();S.foot=f;S.mount=mt;S.started=true;NAV.strides=[];NAV.pend=null;NAV.grade=0;demoSheet(false);closeCheck();}
+ else if(a==='d-reset'){const f=S.foot,mt=S.mount,dst=S.dest;S=fresh();S.foot=f;S.mount=mt;S.started=true;setDest(dst||'River Valley Trail');NAV.strides=[];NAV.pend=null;NAV.grade=0;demoSheet(false);closeCheck();}
  render();});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='destIn'){e.preventDefault();document.querySelector('[data-act=dest-go]').click();}});
 render();
 </script>
 </body>
