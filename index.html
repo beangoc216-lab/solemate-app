@@ -113,6 +113,9 @@ input:focus-visible{border-color:#12666B!important}
 .ladder div.done{opacity:1}
 .ladder div.done .k{background:#fff;color:#B3261E}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.sos-big{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:var(--red);color:#fff;border-radius:24px;padding:18px;box-shadow:0 10px 24px rgba(179,38,30,.3)}
+.sos-big .sos-c{width:64px;height:64px;border-radius:50%;background:#fff;color:var(--red);font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;flex:none}
+.sos-big b{display:block;font-size:19px}.sos-big span span{font-size:13px}
 </style>
 </head>
 <body>
@@ -140,7 +143,7 @@ const SLIP_WIN=130;        // ms — the slip window measured in the study (20 m
 let SLIP_TH=SLIP_LOW;      // m/s² (Demo → sensitivity can lower it for classroom tests)
 const C={teal:'#12666B',red:'#B3261E',orange:'#A84E0A',green:'#2A7A47',blue:'#2A5DB8',ink:'#121214'};
 const P={run:'<path d="M13 4a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/><path d="M7 21l3-6 3 2v5M10 15l1-6 4 3 3 1M8 9l3-1"/>',map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',report:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>',buddy:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c0-2.8-1.6-4.8-4-5.6"/>',ar:'<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3"/>',alert:'<path d="M12 3L2 20h20z"/><path d="M12 10v4M12 17h.01"/>',head:'<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',sliders:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'};
-Object.assign(P,{up:'<path d="M4 18L20 6M20 6h-7M20 6v7"/>',down:'<path d="M4 6l16 12M20 18h-7M20 18v-7"/>',flat:'<path d="M3 12h17M14 6l6 6-6 6"/>',ice:'<path d="M12 2v20M3.5 7l17 10M20.5 7l-17 10"/><path d="M9 4l3 2 3-2M9 20l3-2 3 2"/>',rock:'<path d="M3 19l4-8 4 3 3-6 7 11z"/>',check:'<path d="M5 12l5 5 9-10"/>',phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',pause:'<path d="M9 5v14M15 5v14"/>',pin:'<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',coach:'<path d="M12 3v3M5 6l2 2M19 6l-2 2"/><path d="M8 14a4 4 0 1 1 8 0c0 2-2 3-2 5h-4c0-2-2-3-2-5z"/><path d="M10 21h4"/>'});
+Object.assign(P,{msg:'<path d="M4 5h16v11H9l-5 4z"/>',up:'<path d="M4 18L20 6M20 6h-7M20 6v7"/>',down:'<path d="M4 6l16 12M20 18h-7M20 18v-7"/>',flat:'<path d="M3 12h17M14 6l6 6-6 6"/>',ice:'<path d="M12 2v20M3.5 7l17 10M20.5 7l-17 10"/><path d="M9 4l3 2 3-2M9 20l3-2 3 2"/>',rock:'<path d="M3 19l4-8 4 3 3-6 7 11z"/>',check:'<path d="M5 12l5 5 9-10"/>',phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',pause:'<path d="M9 5v14M15 5v14"/>',pin:'<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',coach:'<path d="M12 3v3M5 6l2 2M19 6l-2 2"/><path d="M8 14a4 4 0 1 1 8 0c0 2-2 3-2 5h-4c0-2-2-3-2-5z"/><path d="M10 21h4"/>'});
 // people in the app
 const PEOPLE={Emma:{c:'#12666B',rel:'Partner',d:30,b:35},Mom:{c:'#6B3FD1',rel:'Family',d:45,b:200},Jake:{c:'#2A5DB8',rel:'Friend',d:55,b:-60},Linh:{c:'#A84E0A',rel:'Friend',d:80,b:120},Sam:{c:'#2A7A47',rel:'Friend',d:65,b:-150}};
 const EMERGENCY=['Emma','Mom'];
@@ -329,7 +332,7 @@ function alertHazard(h,d){
  if(!S.sharing){toast('Hazard ahead, but terrain alerts are off. Turn on sharing in Map.');return;}
  S.banner={title:`${h.label} ahead`,sub:`in ${d.toFixed(0)} m`,msg:MSG[h.type]||MSG.ice,color:HCOL[h.type]||C.red};
  S.pulseId=h.id;
- if(S.alertMode==='earbuds'){chime();speak(S.banner.msg);}else{chime();tab='map';}
+ if(S.alertMode==='earbuds'){chime();speak(S.banner.msg);}else{chime();}
  clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>{S.banner=null;S.pulseId=null;render();},8000);render();}
 function skipToHazard(){const h=nextHazard();if(!h)return;S.offset+=ahead(h)-ALERT_M;h.lap=-1;checkHazards();render();}
 function slip(src){S.slips++;let hid=null;
@@ -421,7 +424,7 @@ const pct=x=>Math.round(x*100)+'%';
 function mix(a,b,t){t=Math.max(0,Math.min(1,t));const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const A=p(a),B=p(b);return'rgb('+A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')+')';}
 const TGL={coach:'Form coach voice',sharing:'Share terrain data',buddy:'Buddy Mode',mytrail:'Share my footprints','b-Emma':'Share with Emma','b-Mom':'Share with Mom','b-Jake':'Share with Jake'};
 const tg=(on,act,label)=>`<button class="toggle ${on?'on':''}" data-act="${act}" role="switch" aria-checked="${on?'true':'false'}" aria-label="${label||TGL[act]||act}"></button>`;
-function navHTML(){const b=([k,l])=>`<button data-tab="${k}" class="${tab===k?'sel':''}" ${tab===k?'aria-current="page"':''}>${I(k)}${l}</button>`;return[['run','Walk'],['map','Map'],['report','Report']].map(b).join('')+`<button class="sosb" data-act="sos">SOS <small>help</small><span class="sr-only">, emergency</span></button>`+[['buddy','Group'],['ar','AR']].map(b).join('');}
+function navHTML(){const cur=tab==='ar'?'buddy':tab;return[['run','Walk'],['buddy','Group'],['safety','Safety'],['report','Report']].map(([k,l])=>`<button data-tab="${k}" class="${cur===k?'sel':''}" ${cur===k?'aria-current="page"':''}>${I(k==='safety'?'shield':k)}${l}</button>`).join('');}
 function bannerHTML(){if(!S.banner)return'';return`<div class="banner" role="alert" style="background:${S.banner.color}">${I('alert',28,'#fff')}<div><b>${S.banner.title}</b><span>${S.banner.sub}</span></div></div>${S.alertMode==='earbuds'?`<div class="pill dark" style="align-self:flex-start">${I('head',15,'#fff')} “${S.banner.msg}”</div>`:''}`;}
 function coachCue(a){if(S.onBreak)return'On a break. Start walking to resume.';
  if(a.score===null)return'Start walking. I’ll coach your landings and posture.';
@@ -466,13 +469,13 @@ function mapPersonCard(){const k=S.mapPerson;if(!k||!S.trek||!S.trek.members.inc
 function peopleList(){const mem=S.trek?S.trek.members:[];if(!mem.length)return'';return`<div class="card"><h2 class="ctitle">People</h2>${mem.map(k=>`<button class="lrow" data-act="person-${k}" style="width:100%;text-align:left"><div class="av" style="background:${PEOPLE[k].c}" aria-hidden="true">${k[0]}</div><div class="tx"><b>${k}</b><span>${memberDist(k)} m away</span></div><span class="small" aria-hidden="true">›</span></button>`).join('')}</div>`;}
 function groupBar(){if(!S.trek||!S.trek.members.length)return`<button class="card lrow" data-tab="buddy" style="text-align:left">${I('buddy',20,C.teal)}<div class="tx"><b>See your friends here</b><span>Create or join a group</span></div><span class="small">›</span></button>`;
  return`<button class="btn full" data-act="msg-group" style="display:flex;align-items:center;justify-content:center;gap:8px">${I('pin',16)} Message the group</button>`;}
-function mapHTML(){const p=at(pos());
+function mapHTML(embedded){const p=at(pos());
  const pins=S.hazards.map(h=>{const q=at(h.pos),col=HCOL[h.type]||C.red;return`<g data-act="pin-${h.id}" style="cursor:pointer">${S.pulseId===h.id?`<circle class="pulse" cx="${q[0]}" cy="${q[1]}" r="12" fill="${col}"/>`:''}${S.mapSel===h.id?`<circle cx="${q[0]}" cy="${q[1]}" r="17" fill="none" stroke="${col}" stroke-width="3"/>`:''}<circle cx="${q[0]}" cy="${q[1]}" r="20" fill="transparent"/><circle cx="${q[0]}" cy="${q[1]}" r="11" fill="${col}" stroke="#fff" stroke-width="3"/><text x="${q[0]}" y="${q[1]+4.5}" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">${GLYPH[h.type]||'!'}</text></g>`}).join('');
  let safe='';if(S.safeRoute){const a1=at(7),a2=at(22),m=at(14);safe=`<path d="M${a1[0]} ${a1[1]} Q${m[0]+70} ${m[1]+40} ${a2[0]} ${a2[1]}" stroke="${C.green}" stroke-width="5" stroke-dasharray="1 9" stroke-linecap="round" fill="none"/><text x="${m[0]+44}" y="${m[1]+34}" font-size="11" font-weight="700" fill="${C.green}">Safest route</text>`;}
  const sel=S.hazards.find(h=>h.id===S.mapSel);
- return`<div class="hdr"><div><h1 class="hT">Map</h1><div class="hS">${S.dest||'River Valley Trail'}</div></div></div>
+ return`${embedded?'':`<div class="hdr"><div><h1 class="hT">Map</h1><div class="hS">${S.dest||'River Valley Trail'}</div></div></div>
  ${S.alertMode==='map'?bannerHTML():''}
- <div class="card" style="padding:8px;position:relative"><svg id="mapSvg" role="img" aria-label="Trail map: you, ${(S.trek?S.trek.members.length:0)} group members and ${S.hazards.length} terrain points. Use the lists below to select them." viewBox="0 0 316 390" style="width:100%;display:block;border-radius:16px;background:#E6EAE1;touch-action:none"><g id="mapG" transform="${mapT()}">
+ `}<div class="card" style="padding:8px;position:relative"><svg id="mapSvg" role="img" aria-label="Trail map: you, ${(S.trek?S.trek.members.length:0)} group members and ${S.hazards.length} terrain points. Use the lists below to select them." viewBox="0 0 316 390" style="width:100%;display:block;border-radius:16px;background:#E6EAE1;touch-action:none"><g id="mapG" transform="${mapT()}">
  <rect x="-600" y="-600" width="1500" height="1600" fill="#E6EAE1"/>
  <path d="M-300 230C60 200 120 300 200 260S330 300 620 300" stroke="#C6DAEA" stroke-width="30" fill="none"/><path d="M-300 124L620 86M116 -300L144 700" stroke="#fff" stroke-width="8" fill="none"/>
  <circle cx="40" cy="120" r="26" fill="#D3DEC9"/><circle cx="260" cy="250" r="34" fill="#D3DEC9"/><circle cx="230" cy="340" r="22" fill="#D3DEC9"/>
@@ -482,7 +485,7 @@ function mapHTML(){const p=at(pos());
  </div>
  ${sel?`<div class="card"><div class="lrow" style="padding:0"><span class="d" style="width:14px;height:14px;background:${HCOL[sel.type]||C.red}"></span><div class="tx"><b>${sel.label}</b><span>${TYPEN[sel.type]} · ${sel.reports} report${sel.reports>1?'s':''} · ${Math.round(ahead(sel))} m ahead</span></div><button class="pill soft" data-act="pin-close" aria-label="Close" style="padding:8px">${I('x',14)}</button></div>
  <p class="small" style="margin-top:8px">${TIP[sel.type]}</p><button class="btn ${S.safeRoute?'':'dark'} full" data-act="saferoute" style="margin-top:10px">${S.safeRoute?'Hide safe route':'Safe route'}</button></div>`:''}
- ${mapPersonCard()}${groupBar()}${peopleList()}
+ ${mapPersonCard()}${groupBar()}${embedded?'':peopleList()}
  <div class="row">${[['up','Uphill'],['down','Downhill'],['ice','Ice'],['uneven','Rocky']].map(([k,l])=>`<span class="pill soft"><span aria-hidden="true" style="width:18px;height:18px;border-radius:50%;background:${HCOL[k]};color:#fff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center">${GLYPH[k]}</span>${l}</span>`).join('')}</div>
  <div class="card"><div class="lrow"><div class="tx"><b>Share terrain data</b><span>${S.sharing?'Only the ground, never you':'Off · no alerts'}</span></div>${tg(S.sharing,'sharing')}</div></div>
  <div class="card"><h2 class="ctitle">On the way</h2>${S.hazards.map(h=>`<button class="lrow" data-act="pin-${h.id}" style="width:100%;text-align:left"><span class="d" style="width:10px;height:10px;background:${HCOL[h.type]||C.red}"></span><div class="tx"><b>${h.label}</b><span>${h.reports} report${h.reports>1?'s':''} · ${Math.round(ahead(h))} m ahead</span></div><span class="small">View ›</span></button>`).join('')}</div><div style="height:60px"></div>`;}
@@ -508,8 +511,21 @@ function trendHTML(a){const wk=S.period==='week';const todayRow=['Sun',S.steps,a
  <div class="card"><div class="ai" style="margin-top:0">✦ Form Score ${first} → ${last}. Best ${wk?'day':'week'}: ${best[0]}.</div></div>
  ${doctorHTML()}<div style="height:60px"></div>`;}
 function doctorHTML(){return`<div class="card"><div class="lrow" style="padding:0"><div class="tx"><b>Share with your doctor</b><span>Private link · no location · 7 days</span></div><button class="btn sm dark" data-act="doctor">Share</button></div></div>`;}
-function reportHTML(){const a=analysis();
- const head=`<div class="hdr"><div><h1 class="hT">Report</h1><div class="hS">${S.period==='day'?'Today':S.period==='week'?'This week':'This month'} · Ryan</div></div></div>${periodSeg()}`;
+const isoDay=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,10);};
+function dayData(iso){let h=0;for(const ch of iso)h=(h*31+ch.charCodeAt(0))>>>0;const r=k=>((h>>>k)%1000)/1000;   // prototype: stable sample data per date
+ if(r(3)<0.18)return null;return{steps:Math.round(3500+r(5)*9000),score:Math.round(64+r(9)*22),slips:r(13)<0.7?0:r(13)<0.9?1:2,mins:Math.round(25+r(17)*70),
+  terrain:['Flat trail','2 uphills','Icy patches','Hilly route','Stairs + ramp'][(h>>>4)%5],place:['River Valley Trail','MacEwan Campus','Hawrelak Park'][(h>>>7)%3]};}
+function historyHTML(iso){const d=dayData(iso),nice=new Date(iso+'T12:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
+ if(!d)return`<div class="card"><h2 class="ctitle">${nice}</h2><p class="small">No walk recorded on this day.</p><button class="btn full" data-act="rep-today" style="margin-top:10px">Back to today</button></div>`;
+ return`<div class="card"><div class="tag">${nice}</div><div style="font-size:18px;font-weight:800;margin-top:4px">${d.place}</div>
+ <div style="display:flex;gap:10px;align-items:flex-end;margin-top:10px"><div class="big">${d.score}</div><div style="padding-bottom:6px"><span style="font-size:16px;font-weight:700;color:var(--mute)">/ 100</span><div class="small" style="font-weight:700;color:${barCol(d.score)}">${d.score>=80?'good':d.score>=62?'OK':'work on it'}</div></div></div></div>
+ <div class="grid2"><div class="mini"><b>${d.steps.toLocaleString()}</b><span>Steps</span></div><div class="mini"><b>${(d.steps*STEP_LEN/1000).toFixed(1)} km</b><span>Distance</span></div><div class="mini"><b>${d.mins} min</b><span>Time</span></div><div class="mini"><b>${d.slips}</b><span>Slips</span></div></div>
+ <div class="card"><div class="tag">Terrain</div><div style="font-weight:700;margin-top:6px;font-size:15px">${d.terrain}</div></div>
+ <button class="btn full" data-act="rep-today">Back to today</button>${doctorHTML()}<div style="height:60px"></div>`;}
+function reportHTML(){const a=analysis();const today=isoDay(new Date()),sel=S.repDate&&S.repDate!==today?S.repDate:null;
+ const cal=`<div class="card" style="display:flex;align-items:center;gap:12px;padding:12px 16px">${I('report',20,C.teal)}<label for="repDate" style="flex:1;font-weight:700;font-size:14px">History<span class="small" style="display:block;font-weight:400">Choose a date to see that report</span></label><input type="date" id="repDate" max="${today}" value="${sel||today}" style="font:inherit;font-size:14px;padding:9px 10px;border-radius:12px;background:#fff"></div>`;
+ if(sel)return`<div class="hdr"><div><h1 class="hT">Report</h1><div class="hS">History</div></div></div>${cal}${historyHTML(sel)}`;
+ const head=`<div class="hdr"><div><h1 class="hT">Report</h1><div class="hS">${S.period==='day'?'Today':S.period==='week'?'This week':'This month'} · Ryan</div></div></div>${periodSeg()}${cal}`;
  if(S.period!=='day')return head+trendHTML(a);
  if(a.score===null)return head+`<div class="card small">Walk a few steps first. Your Form Score, foot pressure and tips appear here once SoleMate has a few steps.</div>${doctorHTML()}`;
  const issues=[];if(a.landing==='Hard')issues.push('your landings are hard');if(a.rolling==='Rolling in')issues.push('your foot rolls inward');if(a.rolling==='Rolling out')issues.push('your foot rolls outward');if(a.cv>.2)issues.push('your rhythm is uneven');if(S.slips)issues.push(`you slipped ${S.slips} time${S.slips>1?'s':''}`);
@@ -541,7 +557,7 @@ function joinGroup(code,by,name){ensurePerson(by);const others=['Emma','Jake'].f
  S.msgs=[{id:1,from:by,text:'Welcome! Follow my footsteps',pos:(pos()+PEOPLE[by].d*.6)%TRAIL_M}];toast(`You joined ${S.trek.name}`);}
 let joinTimers=[];
 function createGroup(){joinTimers.forEach(clearTimeout);S.trek={code:'SOLE-'+(1000+Math.floor(Math.random()*9000)),name:'Saturday hike',admin:'You',members:[],vis:{}};S.msgs=[];S.showQR=true;loadQR();
- ['Emma','Jake','Linh'].forEach((k,i)=>joinTimers.push(setTimeout(()=>{if(!S.trek||S.trek.admin!=='You'||S.trek.members.includes(k))return;S.trek.members.push(k);S.trek.vis[k]='loc';toast(`${k} joined`);if(tab==='buddy'||tab==='map')render();},2500+i*2200)));}
+ ['Emma','Jake','Linh'].forEach((k,i)=>joinTimers.push(setTimeout(()=>{if(!S.trek||S.trek.admin!=='You'||S.trek.members.includes(k))return;S.trek.members.push(k);S.trek.vis[k]='loc';toast(`${k} joined`);if(tab==='buddy')render();},2500+i*2200)));}
 /* ---- scanning: real QR reading where the browser has BarcodeDetector (Android Chrome) ---- */
 let scanStream=null,scanTimer=null;
 async function startScan(){const o=document.getElementById('overlay');
@@ -559,23 +575,26 @@ function trekHTML(){const t=S.trek;
   <button class="btn dark full" data-act="grp-create">Create a group</button><button class="btn full" data-act="grp-scan" style="margin-top:8px">Scan to join</button></div>`;
  const iAmAdmin=t.admin==='You';const adminBadge=`<span class="pill" style="padding:3px 8px;font-size:10.5px;background:${C.ink};color:#fff;box-shadow:none">Admin</span>`;
  const row=k=>{const v=t.vis[k]||'loc';return`<div style="padding:10px 0;border-top:1px solid var(--soft)"><div class="lrow" style="padding:0"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div class="tx"><b style="display:flex;align-items:center;gap:6px">${k} ${t.admin===k?adminBadge:''}</b><span>${memberDist(k)} m away</span></div>
-   <button class="btn sm" data-act="find-${k}" aria-label="Find ${k} with camera" style="padding:7px 10px">${I('ar',14)}</button>${iAmAdmin?`<button class="pill soft" data-act="rm-${k}" aria-label="Remove ${k}" style="padding:8px">${I('x',14)}</button>`:''}</div>
+   <button class="btn sm" data-act="msg-${k}" aria-label="Message ${k}" style="padding:7px 10px">${I('msg',14)}</button><button class="btn sm" data-act="find-${k}" aria-label="Find ${k} with camera" style="padding:7px 10px">${I('ar',14)}</button>${iAmAdmin?`<button class="pill soft" data-act="rm-${k}" aria-label="Remove ${k}" style="padding:8px">${I('x',14)}</button>`:''}</div>
    <div class="seg" style="margin-top:8px;padding:3px">${VIS.map(([m,l])=>`<button data-act="vis-${k}-${m}" class="${v===m?'sel':''}" style="padding:7px 4px;font-size:12px">${l}</button>`).join('')}</div></div>`;};
  return`<div class="card"><div class="hdr"><div><div style="font-size:18px;font-weight:800">${t.name}</div><div class="small">Code <b style="color:var(--ink)">${t.code}</b> · ${t.members.length+1} people</div></div><button class="pill soft" data-act="grp-qr">${I('ar',14)} ${S.showQR?'Hide':'QR'}</button></div>
  ${S.showQR?`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin:14px 0 4px">${qrSVG(joinURL(t))}<div class="small">Scan with the phone camera to join</div></div>`:''}
  <div class="lrow" style="margin-top:10px"><div class="av" style="background:var(--ink)">R</div><div class="tx"><b style="display:flex;align-items:center;gap:6px">Ryan (you) ${iAmAdmin?adminBadge:''}</b><span>${iAmAdmin?'You created this group':'Member'}</span></div></div>
  ${t.members.length?`<div class="tag" style="margin:10px 0 2px">What each person sees of you</div>${t.members.map(row).join('')}`:`<p class="small" style="padding:8px 0">Waiting for people to scan…</p>`}
  <button class="btn full" data-act="grp-leave" style="margin-top:12px;color:var(--red)">${iAmAdmin?'End group':'Leave group'}</button></div>`;}
-function buddyHTML(){const a=analysis();return`<div class="hdr"><div><h1 class="hT">Group</h1></div></div>
+function buddyHTML(){const t=S.trek;return`<div class="hdr"><div><h1 class="hT">Group</h1></div></div>
  ${trekHTML()}
- <div class="card"><div class="lrow" style="padding:0"><div class="tx"><b style="font-size:16px">Buddy Mode</b><span>Only on when you turn it on</span></div>${tg(S.buddy,'buddy')}</div>
- <div style="margin-top:10px;background:var(--bg);border-radius:16px;padding:12px"><div class="tag">What your buddies see</div><div style="font-size:15px;font-weight:700;margin-top:6px">${!S.buddy?'Ryan is offline':S.onBreak?'Ryan paused ☕':'Ryan is on the river valley trail'}</div>
- ${S.buddy?`<div class="row" style="margin-top:8px"><span class="pill"><span class="d" style="background:${a.sc}"></span>${a.status}</span><span class="pill">${(S.steps*STEP_LEN).toFixed(0)} m</span><span class="pill"><span class="d" style="background:${S.slips?C.orange:C.green}"></span>${S.slips?S.slips+' slip'+(S.slips>1?'s':''):'No slips'}</span></div>`:''}</div>
- <h2 class="ctitle" style="margin-top:12px">Family <span class="small">· outside the group</span></h2>${[['Emma','Emma (partner)','Location + foot status'],['Mom','Mom','Location only'],['Jake','Jake','Friend']].map(([k,n,s])=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}">${n[0]}</div><div class="tx"><b>${n}</b><span>${S.buddies[k]?s:'Off'}</span></div>${tg(S.buddies[k],'b-'+k)}</div>`).join('')}</div>
+ ${t&&t.members.length?`<h2 class="ctitle" style="font-size:18px;margin-top:6px">Map</h2>${mapHTML(true)}`:''}<div style="height:60px"></div>`;}
+function safetyHTML(){const a=analysis();return`<div class="hdr"><div><h1 class="hT">Safety</h1><div class="hS">Help when you need it</div></div></div>
+ <button class="sos-big" data-act="sos"><span class="sos-c">SOS</span><span><b>Get help now</b><span>Texts Emma &amp; Mom your exact location, then calls 911</span></span></button>
  <div class="card" style="box-shadow:0 0 0 2px ${C.red} inset,var(--sh)"><h2 class="ctitle" style="color:${C.red};font-size:16px">Safety</h2>
  <div class="small" style="margin-bottom:6px">We ask you first. No answer → we text Emma &amp; Mom your exact location.</div>
  ${[['alert','Hard fall','20 s → family, 45 s → 911'],['ice','Slip, then no movement','20 s → family'],['run','Stopped 90 s → “Did you fall?”','30 s → family, 2 min → 911'],['pause','Pause runs over','30 s → family'],['pin','Late to destination','1 min → family'],['phone','Battery under 10%','Last location → family']].map(([i,n,r])=>`<div class="lrow"><span style="width:34px;height:34px;border-radius:11px;background:#FBE9E7;display:flex;align-items:center;justify-content:center;flex:none">${I(i,17,C.red)}</span><div class="tx"><b style="font-size:14px">${n}</b><span>${r}</span></div></div>`).join('')}
- ${S.alertsSent.length?`<p class="small">Alerts sent today: ${S.alertsSent.join(', ')}</p>`:''}<button class="btn red full" data-act="sos" style="font-size:16px;padding:15px;margin-top:8px">Get help now</button></div><div style="height:60px"></div>`;}
+ ${S.alertsSent.length?`<p class="small">Alerts sent today: ${S.alertsSent.join(', ')}</p>`:''}</div> <div class="card"><div class="lrow" style="padding:0"><div class="tx"><b style="font-size:16px">Buddy Mode</b><span>Only on when you turn it on</span></div>${tg(S.buddy,'buddy')}</div>
+ <div style="margin-top:10px;background:var(--bg);border-radius:16px;padding:12px"><div class="tag">What your buddies see</div><div style="font-size:15px;font-weight:700;margin-top:6px">${!S.buddy?'Ryan is offline':S.onBreak?'Ryan paused ☕':'Ryan is on the river valley trail'}</div>
+ ${S.buddy?`<div class="row" style="margin-top:8px"><span class="pill"><span class="d" style="background:${a.sc}"></span>${a.status}</span><span class="pill">${(S.steps*STEP_LEN).toFixed(0)} m</span><span class="pill"><span class="d" style="background:${S.slips?C.orange:C.green}"></span>${S.slips?S.slips+' slip'+(S.slips>1?'s':''):'No slips'}</span></div>`:''}</div>
+ <h2 class="ctitle" style="margin-top:12px">Family <span class="small">· outside the group</span></h2>${[['Emma','Emma (partner)','Location + foot status'],['Mom','Mom','Location only'],['Jake','Jake','Friend']].map(([k,n,s])=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}">${n[0]}</div><div class="tx"><b>${n}</b><span>${S.buddies[k]?s:'Off'}</span></div>${tg(S.buddies[k],'b-'+k)}</div>`).join('')}</div>
+<div style="height:60px"></div>`;}
 /* ================= AR footprints =================
    Real AR (Android Chrome, WebXR): the camera finds the actual floor (hit-test), footprints are laid
    ON it in world space, so they stay put when you move. New ones keep appearing ahead as you walk
@@ -662,7 +681,7 @@ async function startXR(){const k=S.arTarget;if(!k)return;let THREE;
 
 function arHTML(){const mem=S.trek?S.trek.members:[];if(!S.arTarget||!mem.includes(S.arTarget))S.arTarget=mem[0]||null;const k=S.arTarget;
  if(xrOK===null){xrOK=false;try{navigator.xr&&navigator.xr.isSessionSupported('immersive-ar').then(v=>{xrOK=!!v;if(tab==='ar')render();}).catch(()=>{});}catch(e){}}
- const top=`<div style="position:absolute;top:calc(env(safe-area-inset-top) + 14px);left:14px;right:14px;display:flex;gap:8px;overflow-x:auto"><span class="pill dark">AR</span>${mem.map(m=>`<button class="pill ${m===k?'dark':''}" data-act="ar-${m}"><span class="d" style="background:${PEOPLE[m].c}"></span>${m}</button>`).join('')}<button class="pill" data-tab="buddy">${I('plus',14)} Group</button></div>`;
+ const top=`<div style="position:absolute;top:calc(env(safe-area-inset-top) + 14px);left:14px;right:14px;display:flex;gap:8px;overflow-x:auto"><span class="pill dark">AR</span>${mem.map(m=>`<button class="pill ${m===k?'dark':''}" data-act="ar-${m}"><span class="d" style="background:${PEOPLE[m].c}"></span>${m}</button>`).join('')}<button class="pill" data-tab="buddy">← Back</button></div>`;
  if(!k)return`<div class="arwrap"><video id="cam" autoplay playsinline muted></video>${top}<div style="position:absolute;left:20px;right:20px;top:30%;background:#fff;border-radius:22px;padding:22px;text-align:center;box-shadow:var(--sh)"><b style="font-size:19px">Find your friends</b><p class="small" style="margin:6px 0 14px">Create or join a group to see their footprints.</p><button class="btn dark full" data-tab="buddy">Go to Group</button></div></div>`;
  return`<div class="arwrap"><video id="cam" autoplay playsinline muted></video><canvas id="arCv" role="img" aria-label="Camera view with ${k}’s footprints on the ground, ${Math.max(0,Math.round(memberDist(k)-arWalk))} metres away" style="position:absolute;inset:0;width:100%;height:100%"></canvas>${top}
  <div style="position:absolute;top:calc(env(safe-area-inset-top) + 62px);left:0;right:0;display:flex;justify-content:center"><span class="pill" style="font-size:14px;padding:9px 14px"><span class="d" style="background:${PEOPLE[k].c}"></span><span id="vTarget">${k} · ${Math.max(0,Math.round(memberDist(k)-arWalk))} m</span><span style="opacity:.5">·</span><span id="vTurn">${heading===null?'Walk forward':'Turn to find '+k}</span></span></div>
@@ -678,11 +697,11 @@ function a11yModal(){const o=document.getElementById('overlay'),sheet=document.g
  if(modal&&sig!==lastModal){const r=o.innerHTML.trim()?o:sheet;const f=r.querySelector('[data-act=ok]')||r.querySelector('[data-act=send]')||r.querySelector('[data-act=ok-after]')||r.querySelector('button,input')||r.querySelector('h1,h2');if(f){if(!f.matches('button,input,a'))f.setAttribute('tabindex','-1');f.focus({preventScroll:true});}}
  lastModal=modal?sig:'';}
 function a11yPass(root){root.querySelectorAll('.seg').forEach(g=>{g.setAttribute('role','group');g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('sel')?'true':'false'));});}
-const TITLES={run:'Walk',map:'Map',report:'Report',buddy:'Group',ar:'AR'};
+const TITLES={run:'Walk',report:'Report',buddy:'Group',safety:'Safety',ar:'Find with camera'};
 function render(){document.getElementById('nav').innerHTML=navHTML();const c=document.getElementById('content');
- c.innerHTML=tab==='run'?runHTML():tab==='map'?mapHTML():tab==='report'?reportHTML():tab==='buddy'?buddyHTML():arHTML();
+ if(tab==='map')tab='buddy';c.innerHTML=tab==='run'?runHTML():tab==='report'?reportHTML():tab==='buddy'?buddyHTML():tab==='safety'?safetyHTML():arHTML();
  document.title=(TITLES[tab]||'SoleMate')+' · SoleMate';a11yPass(document.getElementById('app'));c.style.padding=tab==='ar'?'0':'';c.style.position=tab==='ar'?'relative':'';if(tab==='ar'){startCam();if(!arLoopOn)arLoop();}else stopCam();renderOverlay();}
-function refreshLive(){if(tab==='run'||tab==='map'||tab==='buddy')render();}
+function refreshLive(){if(tab==='run'||tab==='buddy'||tab==='safety')render();}
 
 /* light per-frame updates */
 setInterval(()=>{const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
@@ -848,9 +867,10 @@ document.getElementById('app').addEventListener('click',e=>{
  else if(a.startsWith('b-')){const k=a.slice(2);S.buddies[k]=!S.buddies[k];}
  else if(a==='doctor')toast('Private link created for your doctor · expires in 7 days');
  // report
- else if(a.startsWith('per-'))S.period=a.slice(4);
+ else if(a.startsWith('per-')){S.period=a.slice(4);S.repDate=null;}
+ else if(a==='rep-today')S.repDate=null;
  // map
- else if(a.startsWith('pin-')&&a!=='pin-close'){S.mapSel=+a.slice(4);if(tab==='map'){const h=S.hazards.find(x=>x.id===S.mapSel);if(h){const q=at(h.pos);S.mapPan=[-(q[0]-158)*S.mapZoom,-(q[1]-195)*S.mapZoom];}}}
+ else if(a.startsWith('pin-')&&a!=='pin-close'){S.mapSel=+a.slice(4);if(tab==='buddy'){const h=S.hazards.find(x=>x.id===S.mapSel);if(h){const q=at(h.pos);S.mapPan=[-(q[0]-158)*S.mapZoom,-(q[1]-195)*S.mapZoom];}}}
  else if(a==='pin-close'){S.mapSel=null;}
  else if(a==='saferoute')S.safeRoute=!S.safeRoute;
  else if(a==='zin')S.mapZoom=Math.min(3,+(S.mapZoom*1.4).toFixed(2));
@@ -885,6 +905,7 @@ document.getElementById('app').addEventListener('click',e=>{
  else if(a==='d-recal'){demoSheet(false);calibrate();return;}
  else if(a==='d-reset'){const f=S.foot,mt=S.mount,dst=S.dest;S=fresh();S.foot=f;S.mount=mt;S.started=true;setDest(dst||'River Valley Trail');NAV.strides=[];NAV.pend=null;NAV.grade=0;demoSheet(false);closeCheck();}
  render();});
+document.addEventListener('change',e=>{if(e.target.id==='repDate'){S.repDate=e.target.value||null;render();setTimeout(()=>{const i=document.getElementById('repDate');if(i)i.focus();},0);}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('sheet').classList.contains('open')){demoSheet(false);return;}if(S.check&&S.check.kind==='compose'){closeCheck();return;}}if(e.key==='Enter'&&e.target.id==='msgIn'){e.preventDefault();document.querySelector('[data-act=compose-send]').click();return;}if(e.key==='Enter'&&e.target.id==='destIn'){e.preventDefault();document.querySelector('[data-act=dest-go]').click();}});
 (()=>{const u=new URLSearchParams(location.search);const c=u.get('join');if(c)S.pendingJoin=[c,u.get('by')||'Admin',u.get('g')];})();
 render();
