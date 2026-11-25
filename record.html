@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>SoleMate · Sensor test recorder</title>
+<style>
+:root{--ink:#121214;--mute:#57575C;--bg:#F5F3EF;--teal:#12666B;--red:#B3261E;--soft:#ECE9E4}
+*{box-sizing:border-box;margin:0}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:calc(env(safe-area-inset-top) + 20px) 18px 40px;max-width:520px;margin:0 auto;line-height:1.45}
+h1{font-size:26px;letter-spacing:-.02em}h2{font-size:17px;margin-bottom:8px}
+.tag{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.card{background:#fff;border-radius:20px;padding:16px;margin-top:14px;box-shadow:0 4px 18px rgba(0,0,0,.06)}
+.warn{background:#FBE9E7;color:#5c1a14}
+ol,ul{padding-left:20px}li{margin:4px 0}
+label{font-weight:600;font-size:14px;display:block;margin-bottom:4px}
+input{font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid #8A847B;border-radius:12px;width:100%}
+.row{display:flex;gap:10px}.row>div{flex:1}
+button{font:inherit;font-weight:700;font-size:16px;border:0;border-radius:99px;padding:15px 18px;width:100%;margin-top:12px;cursor:pointer;background:var(--soft);color:var(--ink)}
+button.dark{background:var(--ink);color:#fff}button.red{background:var(--red);color:#fff}
+button:disabled{background:var(--soft);color:var(--mute)}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+#phase{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+#count{font-size:64px;font-weight:800;color:var(--red);text-align:center;min-height:80px}
+.stat{display:flex;justify-content:space-between;font-size:14px;padding:4px 0;border-bottom:1px solid var(--soft)}
+.small{font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="tag">Testing only · not part of the app</div>
+<h1>Sensor test recorder</h1>
+<p class="small" style="margin-top:6px">Records the phone’s motion sensors while a voice guides you, then saves a CSV file. Nothing is stored on the phone or sent anywhere unless you share the file.</p>
+
+<div class="card warn" role="note">
+ <h2>Safety first</h2>
+ <ul>
+  <li>Only small, controlled slips. Never a real fall.</li>
+  <li>Hold a rail, a counter or a helper’s hand during every slip.</li>
+  <li>Use a smooth floor in socks, with nothing hard around you.</li>
+  <li>Stop at any time: tap <b>Stop</b> or just take the phone out.</li>
+ </ul>
+</div>
+
+<div class="card" id="setup">
+ <h2>Plan</h2>
+ <ol class="small" style="color:var(--ink)">
+  <li>Put the phone in your right sock, upright against your shin, screen out (same as the app).</li>
+  <li><b>Stand still</b> for 5 seconds.</li>
+  <li><b>Walk normally</b> (around the room or a hallway).</li>
+  <li><b>Slip trials:</b> the voice counts “3, 2, 1, slip now”. Do one small slip, then keep walking.</li>
+ </ol>
+ <div class="row" style="margin-top:12px">
+  <div><label for="walkMin">Walking (minutes)</label><input id="walkMin" type="number" min="1" max="5" value="3" inputmode="numeric"></div>
+  <div><label for="trials">Slip trials</label><input id="trials" type="number" min="1" max="10" value="5" inputmode="numeric"></div>
+ </div>
+ <button class="dark" id="startBtn">Start recording</button>
+ <p class="small" id="sensorMsg" role="status" style="margin-top:8px"></p>
+</div>
+
+<div class="card" id="live" hidden>
+ <div class="tag">Now</div>
+ <div id="phase" aria-live="polite">Get ready</div>
+ <div id="count" aria-live="assertive"></div>
+ <div class="stat"><span>Time</span><b id="tm">0:00</b></div>
+ <div class="stat"><span>Samples</span><b id="ns">0</b></div>
+ <div class="stat"><span>Sensor rate</span><b id="hz">–</b></div>
+ <div class="stat"><span>Slips done</span><b id="sd">0</b></div>
+ <button class="red" id="markBtn">I slipped (mark now)</button>
+ <p class="small" style="margin-top:6px">Only if you can reach the screen. The voice already marks each slip.</p>
+ <button id="stopBtn">Stop</button>
+</div>
+
+<div class="card" id="done" hidden>
+ <h2>Recording saved</h2>
+ <p class="small" id="sum"></p>
+ <button class="dark" id="shareBtn">Share the CSV</button>
+ <button id="dlBtn">Download the CSV</button>
+ <p class="small" style="margin-top:8px">Send the file to Claude in the chat. Closing this page deletes the recording.</p>
+ <button id="againBtn">Record again</button>
+</div>
+
+<script>
+// ---- recorder (testing only) ----
+const FAST=new URLSearchParams(location.search).has('fast');   // for automated testing: 20x faster script
+const SEC=FAST?50:1000;
+const rows=[];let rec=false,t0=0,phase='idle',trial=0,mark=0,ori={a:'',b:'',g:''},lastT=0,cnt=0,hzT=0,hzN=0,wake=null,timers=[],tick=null;
+const $=id=>document.getElementById(id);
+function say(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=1;speechSynthesis.speak(u);}catch(e){}}
+function beep(){try{const c=window.__ac||(window.__ac=new (window.AudioContext||window.webkitAudioContext)());const o=c.createOscillator(),g=c.createGain();o.frequency.value=880;g.gain.value=.15;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.15);}catch(e){}}
+function onOri(e){ori={a:e.alpha??'',b:e.beta??'',g:e.gamma??''};}
+function onMotion(e){if(!rec)return;const g=e.accelerationIncludingGravity||{},a=e.acceleration||{},r=e.rotationRate||{};
+ const t=(performance.now()-t0)/1000;cnt++;hzN++;
+ rows.push([t.toFixed(4),g.x,g.y,g.z,r.beta,r.gamma,r.alpha,a.x,a.y,a.z,ori.a,ori.b,ori.g,e.interval,phase,trial,mark]);mark=0;}
+const f=v=>v==null||v===''?'':(+v).toFixed(4);
+function csv(){const head='time_s,accel_x,accel_y,accel_z,gyro_x_dps,gyro_y_dps,gyro_z_dps,lin_x,lin_y,lin_z,orient_alpha,orient_beta,orient_gamma,interval_ms,phase,trial,mark\n';
+ return head+rows.map(r=>[r[0],...r.slice(1,14).map(f),r[14],r[15],r[16]].join(',')).join('\n');}
+function setPhase(p,label){phase=p;$('phase').textContent=label;}
+function at(sec,fn){timers.push(setTimeout(fn,sec*SEC));}
+async function start(){
+ // iOS needs permission; Android just works
+ try{if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission){const p=await DeviceMotionEvent.requestPermission();if(p!=='granted'){$('sensorMsg').textContent='Motion permission was refused.';return;}}}catch(e){}
+ try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission)await DeviceOrientationEvent.requestPermission();}catch(e){}
+ try{wake=await Promise.race([navigator.wakeLock.request('screen'),new Promise(r=>setTimeout(()=>r(null),1000))]);}catch(e){}   // keep the screen on, never wait for it
+ const W=Math.max(1,Math.min(5,+$('walkMin').value||3)),N=Math.max(1,Math.min(10,+$('trials').value||5));
+ rows.length=0;cnt=0;trial=0;$('sd').textContent='0';
+ window.addEventListener('devicemotion',onMotion);window.addEventListener('deviceorientation',onOri);
+ $('setup').hidden=true;$('live').hidden=false;$('done').hidden=true;
+ t0=performance.now();rec=true;hzT=t0;hzN=0;
+ tick=setInterval(()=>{const s=(performance.now()-t0)/1000;$('tm').textContent=Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');$('ns').textContent=rows.length;
+  const now=performance.now();if(now-hzT>2000){$('hz').textContent=Math.round(hzN*1000/(now-hzT))+' Hz';hzN=0;hzT=now;}
+  if(s>4&&rows.length===0)$('phase').textContent='No sensor data. Open this page in Chrome on the phone.';},250);
+ // ---- the script ----
+ let T=0;
+ setPhase('ready','Put the phone in your sock');say('Put the phone in your right sock now. Then stand still.');T+=15;
+ at(T,()=>{setPhase('still','Stand still');beep();say('Stand still.');});T+=5;
+ at(T,()=>{setPhase('walk','Walk normally');beep();say(`Walk normally for ${W} minute${W>1?'s':''}.`);});
+ for(let m=1;m<W;m++)at(T+m*60,()=>say(`${W-m} minute${W-m>1?'s':''} left.`));T+=W*60;
+ for(let i=1;i<=N;i++){
+  at(T,()=>{setPhase('prepare','Get ready to slip ('+i+' of '+N+')');beep();say(`Slip ${i} of ${N}. Hold on to something. Get ready.`);});T+=5;
+  at(T,()=>{$('count').textContent='3';say('3');});T+=1;
+  at(T,()=>{$('count').textContent='2';say('2');});T+=1;
+  at(T,()=>{$('count').textContent='1';say('1');});T+=1;
+  at(T,()=>{trial=i;setPhase('slip_cue','Slip now');$('count').textContent='SLIP';beep();say('Slip now.');});T+=3;
+  at(T,()=>{trial=0;$('count').textContent='';$('sd').textContent=i;setPhase('walk','Walk normally');say('Good. Keep walking.');});T+=12;
+ }
+ at(T,()=>{setPhase('still','Stand still');beep();say('Stand still.');});T+=4;
+ at(T,()=>{finish('Done. You can take the phone out.');});}
+function finish(msg){if(!rec)return;rec=false;timers.forEach(clearTimeout);timers=[];clearInterval(tick);
+ window.removeEventListener('devicemotion',onMotion);window.removeEventListener('deviceorientation',onOri);try{wake&&wake.release();}catch(e){}
+ say(msg||'Stopped.');$('live').hidden=true;$('done').hidden=false;
+ const dur=rows.length?(+rows[rows.length-1][0]).toFixed(0):0,slips=new Set(rows.filter(r=>r[15]>0).map(r=>r[15])).size,marks=rows.filter(r=>r[16]).length;
+ $('sum').textContent=`${rows.length} samples · ${dur} s · ${slips} slip trial${slips===1?'':'s'}${marks?' · '+marks+' manual mark'+(marks>1?'s':''):''}`;$('shareBtn').focus();}
+function file(){const name='solemate-test-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.csv';return new File([csv()],name,{type:'text/csv'});}
+function download(){const fl=file(),u=URL.createObjectURL(fl),a=document.createElement('a');a.href=u;a.download=fl.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);}
+$('startBtn').onclick=start;
+$('stopBtn').onclick=()=>finish('Stopped.');
+$('markBtn').onclick=()=>{mark=1;beep();};
+$('dlBtn').onclick=download;
+$('shareBtn').onclick=async()=>{const fl=file();try{if(navigator.canShare&&navigator.canShare({files:[fl]})){await navigator.share({files:[fl],title:'SoleMate sensor test'});return;}}catch(e){if(e.name==='AbortError')return;}download();};
+$('againBtn').onclick=()=>{$('done').hidden=true;$('setup').hidden=false;};
+</script>
+</body>
+</html>
