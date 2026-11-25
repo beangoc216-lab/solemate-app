@@ -91,6 +91,8 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 /* ================= constants ================= */
 let STEP_LEN=0.7;          // metres per step (adjustable in Demo)
 const ALERT_M=8;           // warn this many metres before a hazard
+let SLIP_TH=6;             // slip threshold: sudden slide of the foot, in m/s² (Demo → sensitivity)
+let slipHits=0;
 const C={teal:'#12666B',red:'#DB4538',orange:'#F08F29',green:'#389E5C',blue:'#3B78D9',ink:'#121214'};
 const P={run:'<path d="M13 4a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/><path d="M7 21l3-6 3 2v5M10 15l1-6 4 3 3 1M8 9l3-1"/>',map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',report:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>',buddy:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c0-2.8-1.6-4.8-4-5.6"/>',ar:'<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3"/>',alert:'<path d="M12 3L2 20h20z"/><path d="M12 10v4M12 17h.01"/>',head:'<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',sliders:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'};
 const I=(k,s=22,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[k]}</svg>`;
@@ -106,7 +108,7 @@ const TRAIL_M=60;
 
 /* ================= sensing ================= */
 const grav={x:0,y:0,z:9.81};let calib=null,calibBuf=null;
-const live={pitch:0,roll:0,gyro:0,g:1,lin:0,ground:0,unev:0};
+const live={pitch:0,roll:0,gyro:0,g:1,lin:0,ground:0,unev:0,slideMax:0};
 let st='stance',swingStart=0,stillStart=0,stanceStart=0,buf=[],lastSlip=0,fallCand=0,tiltStill=0,stanceSamples=[],handT=0,flatT=0;
 const median=a=>{const b=[...a].sort((x,y)=>x-y);const m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;};
 function onMotion(e){
@@ -129,11 +131,15 @@ function onMotion(e){
  if(st==='stance'){
   if(t-stanceStart>100)stanceSamples.push({g:gyro,p:rp,r:rr});
   if(gyro>150){st='swing';swingStart=t;stillStart=0;closeStance();}
-  else if(t-stanceStart>220&&lin>7&&gyro<140&&t-lastSlip>2500){lastSlip=t;slip('sensor');}
  }else{
   if(gyro<55){if(!stillStart)stillStart=t;if(t-stillStart>60&&t-swingStart>220){st='stance';stanceStart=t;stanceSamples=[];stride(t);}}else stillStart=0;
   if(t-swingStart>4000){st='stance';stanceStart=t;stanceSamples=[];}
  }
+ // ---- SLIP (accelerometer): the foot suddenly slides forward/sideways but is NOT rotating.
+ // A normal step always rotates the foot (high gyro); a slip on ice is a fast slide with little rotation.
+ live.slideMax=Math.max(live.slideMax*0.97,lin);
+ if(lin>SLIP_TH&&gyro<120)slipHits++;else slipHits=0;
+ if(slipHits>=2&&t-lastSlip>2500&&t-swingStart>150){lastSlip=t;slipHits=0;slip('sensor');}
  // ---- hard fall: strong impact, then the foot lies on its SIDE and stays still for 3 s ----
  if(mag>4&&!fallCand)fallCand=t;
  if(fallCand){const onSide=Math.abs(rr)>55&&Math.abs(rp)<45;
@@ -229,7 +235,7 @@ function runHTML(){const a=analysis();const h=nextHazard();
  <div class="card"><div class="ctitle">Terrain alerts via</div><div class="seg"><button data-act="mode-earbuds" class="${S.alertMode==='earbuds'?'sel':''}">🎧 Earbuds</button><button data-act="mode-map" class="${S.alertMode==='map'?'sel':''}">🗺 Map</button></div>
  <p class="small" style="margin-top:10px">${!S.sharing?'Terrain sharing is off, so alerts are off.':h?`Next: <b style="color:var(--ink)">${h.label}</b>, ${Math.round(ahead(h))} m ahead`:''}</p></div>
  <div class="card"><div class="ctitle">How to use</div><p class="small">Phone flat on top of your shoe, screen up, top of the phone toward your toes. Put earbuds in and walk. Alerts come by voice, so you never need to look down.</p></div>
- <div class="card"><div class="tag" style="margin-bottom:8px">Live sensor data</div><div class="debug"><span>Foot tilt</span><span id="dP">${live.pitch.toFixed(0)}°</span><span>Side tilt</span><span id="dR">${live.roll.toFixed(0)}°</span><span>Rotation</span><span id="dG">${live.gyro.toFixed(0)}°/s</span><span>Impact</span><span id="dA">${live.g.toFixed(1)} g</span><span>Ground slope (last step)</span><span id="dS">${live.ground.toFixed(1)}°</span><span>Side wobble (4 steps)</span><span id="dU">${live.unev.toFixed(1)}°</span></div><p class="small" style="margin-top:8px">Uphill when ground slope &gt; +4°, downhill &lt; −4°. Uneven ground when side wobble &gt; 5°.</p></div>`;}
+ <div class="card"><div class="tag" style="margin-bottom:8px">Live sensor data</div><div class="debug"><span>Foot tilt</span><span id="dP">${live.pitch.toFixed(0)}°</span><span>Side tilt</span><span id="dR">${live.roll.toFixed(0)}°</span><span>Rotation</span><span id="dG">${live.gyro.toFixed(0)}°/s</span><span>Impact</span><span id="dA">${live.g.toFixed(1)} g</span><span>Ground slope (last step)</span><span id="dS">${live.ground.toFixed(1)}°</span><span>Side wobble (4 steps)</span><span id="dU">${live.unev.toFixed(1)}°</span><span>Slide jolt (peak)</span><span id="dJ">${live.slideMax.toFixed(1)} m/s²</span></div><p class="small" style="margin-top:8px">Uphill when ground slope &gt; +4°, downhill &lt; −4°. Uneven ground when side wobble &gt; 5°. Slip when slide jolt &gt; ${SLIP_TH} m/s² while the foot is not rotating.</p></div>`;}
 function seg(m0,m1,col){let d='';for(let k=0;k<=24;k++){const p=at(m0+(m1-m0)*k/24);d+=(k?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}return`<path d="${d}" stroke="${col}" stroke-width="7" fill="none" stroke-linecap="round"/>`;}
 const PTS=[[34,350],[62,298],[108,262],[146,226],[166,176],[214,146],[246,96],[282,36]];
 const SEGL=(()=>{const L=[0];for(let i=1;i<PTS.length;i++)L.push(L[i-1]+Math.hypot(PTS[i][0]-PTS[i-1][0],PTS[i][1]-PTS[i-1][1]));return L})();
@@ -281,7 +287,7 @@ function refreshLive(){if(tab==='run'||tab==='map'||tab==='buddy')render();}
 
 /* light per-frame updates */
 setInterval(()=>{if(tab==='run'){const a=analysis();const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
- set('vCad',a.cad);set('dP',live.pitch.toFixed(0)+'°');set('dR',live.roll.toFixed(0)+'°');set('dG',live.gyro.toFixed(0)+'°/s');set('dA',live.g.toFixed(1)+' g');set('dS',live.ground.toFixed(1)+'°');set('dU',live.unev.toFixed(1)+'°');}
+ set('vCad',a.cad);set('dP',live.pitch.toFixed(0)+'°');set('dR',live.roll.toFixed(0)+'°');set('dG',live.gyro.toFixed(0)+'°/s');set('dA',live.g.toFixed(1)+' g');set('dS',live.ground.toFixed(1)+'°');set('dU',live.unev.toFixed(1)+'°');set('dJ',live.slideMax.toFixed(1)+' m/s²');}
  if(tab==='ar'&&heading!==null){if(emmaBearing===null)emmaBearing=(heading+35)%360;let rel=((emmaBearing-heading+540)%360)-180;const ar=document.getElementById('arrow');if(ar)ar.style.transform=`rotate(${rel}deg)`;
   const t=document.getElementById('vTurn');if(t)t.textContent=Math.abs(rel)<15?'Emma is straight ahead':rel>0?'Turn right →':'← Turn left';}},120);
 
@@ -311,7 +317,7 @@ function demoSheet(open){const s=document.getElementById('sheet');s.classList.to
  <button class="btn" data-act="d-slip">Slip on ice</button><button class="btn" data-act="d-hazard">Next hazard</button>
  <button class="btn" data-act="d-up">${S.slopeForced==='up'?'✓ ':''}Uphill</button><button class="btn" data-act="d-down">${S.slopeForced==='down'?'✓ ':''}Downhill</button>
  <button class="btn" data-act="d-flat">Auto slope</button><button class="btn red" data-act="d-fall">Hard fall</button>
- <div style="grid-column:1/-1"><div class="tag" style="margin:4px 0 6px">Step length</div><div class="seg">${[0.6,0.7,0.8].map(v=>`<button data-act="len-${v}" class="${STEP_LEN===v?'sel':''}">${v} m</button>`).join('')}</div></div><button class="btn" data-act="d-recal">Recalibrate</button><button class="btn" data-act="d-reset">Reset session</button></div>`;}
+ <div style="grid-column:1/-1"><div class="tag" style="margin:4px 0 6px">Slip sensitivity</div><div class="seg">${[['Low',9],['Medium',6],['High',4]].map(([l,v])=>`<button data-act="slip-${v}" class="${SLIP_TH===v?'sel':''}">${l}</button>`).join('')}</div></div><div style="grid-column:1/-1"><div class="tag" style="margin:4px 0 6px">Step length</div><div class="seg">${[0.6,0.7,0.8].map(v=>`<button data-act="len-${v}" class="${STEP_LEN===v?'sel':''}">${v} m</button>`).join('')}</div></div><button class="btn" data-act="d-recal">Recalibrate</button><button class="btn" data-act="d-reset">Reset session</button></div>`;}
 
 /* ================= start / sensors ================= */
 async function start(){S.started=true;try{actx=actx||new AudioContext();await actx.resume();}catch(e){}
@@ -354,6 +360,7 @@ document.getElementById('app').addEventListener('click',e=>{
  else if(a==='d-hazard'){demoSheet(false);skipToHazard();return;}
  else if(a==='d-up'||a==='d-down'){S.slopeForced=a==='d-up'?'up':'down';setSlopeState(S.slopeForced);demoSheet(true);}
  else if(a==='d-flat'){S.slopeForced=null;setSlopeState('flat');demoSheet(true);}
+ else if(a.startsWith('slip-')){SLIP_TH=parseFloat(a.slice(5));demoSheet(true);}
  else if(a.startsWith('len-')){STEP_LEN=parseFloat(a.slice(4));demoSheet(true);}
  else if(a==='d-recal'){demoSheet(false);calibrate();return;}
  else if(a==='d-reset'){const f=S.foot;S=fresh();S.foot=f;S.started=true;demoSheet(false);}
