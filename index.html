@@ -107,7 +107,7 @@ const I=(k,s=22,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0
 const SOLE='M100 12C150 12 176 62 173 122C170 172 150 202 150 252C150 302 166 342 161 392C156 442 131 458 100 458C69 458 47 442 44 397C41 352 54 302 51 252C49 202 29 162 29 112C29 52 54 12 100 12Z';
 
 /* ================= state ================= */
-function fresh(){return{foot:'right',started:false,steps:0,strides:[],strikes:{heel:0,mid:0,fore:0},impacts:[],pron:[],stancePitch:[],
+function fresh(){return{foot:'right',mount:'sock',started:false,steps:0,strides:[],strikes:{heel:0,mid:0,fore:0},impacts:[],pron:[],stancePitch:[],
  lastStrike:'—',lastImpact:0,stanceRoll:[],paused:false,uneven:0,lastUneven:0,slope:'flat',slopeForced:null,slips:0,offset:0,sharing:true,alertMode:'earbuds',buddy:true,
  buddies:{Emma:true,Mom:true,Jake:false},alertsSent:[],banner:null,pulseId:null,
  hazards:[{id:1,pos:14,type:'ice',label:'Black ice',reports:8,lap:-1},{id:2,pos:34,type:'slope',label:'Steep slope',reports:5,lap:-1}],nextId:3}}
@@ -115,7 +115,17 @@ let S=fresh(), tab='run', emer=null, bannerTimer=null, toastTimer=null, sensorsS
 const TRAIL_M=60;
 
 /* ================= sensing ================= */
-const grav={x:0,y:0,z:9.81};let calib=null,calibBuf=null;
+const grav={x:0,y:0,z:9.81};let calib=null,calibBuf=null,calibPhase=null;
+// ---- vector helpers: we measure tilt against the calibrated "standing" direction, so it works in any phone position ----
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const norm=v=>{const l=Math.hypot(v[0],v[1],v[2])||1;return[v[0]/l,v[1]/l,v[2]/l];};
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+// g0 = gravity while standing still. g1 = gravity while leaning "forward" (sock: knee forward, shoe: toes up).
+// f = the forward-tilt direction learned from that lean; s = the side-tilt direction.
+function buildCalib(g0,g1){let f=null,learned=false;
+ if(g1){const d=dot(g1,g0);const p=[g1[0]-d*g0[0],g1[1]-d*g0[1],g1[2]-d*g0[2]];if(Math.hypot(...p)>Math.sin(8/57.3)){f=norm(p);learned=true;}}
+ if(!f){const ax=S.mount==='sock'?[0,0,1]:[0,1,0];const d=dot(ax,g0);f=norm([ax[0]-d*g0[0],ax[1]-d*g0[1],ax[2]-d*g0[2]]);}
+ return{g0,f,s:norm(cross(g0,f)),learned};}
 const live={pitch:0,roll:0,gyro:0,g:1,lin:0,ground:0,unev:0,slideMax:0};
 let st='stance',swingStart=0,stillStart=0,stanceStart=0,buf=[],lastSlip=0,fallCand=0,tiltStill=0,stanceSamples=[],handT=0,flatT=0;
 const median=a=>{const b=[...a].sort((x,y)=>x-y);const m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;};
@@ -125,22 +135,27 @@ function onMotion(e){
  const gyro=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);
  const mag=Math.hypot(g.x,g.y,g.z)/9.81;
  const k=gyro<40?.2:.05;grav.x+=(g.x-grav.x)*k;grav.y+=(g.y-grav.y)*k;grav.z+=(g.z-grav.z)*k;
- const pitch=Math.atan2(grav.y,grav.z)*57.2958, roll=Math.atan2(grav.x,grav.z)*57.2958;
- const a=e.acceleration;const lin=a&&a.x!=null?Math.hypot(a.x,a.y):Math.hypot(g.x-grav.x,g.y-grav.y);
- if(calibBuf){calibBuf.p+=pitch;calibBuf.r+=roll;calibBuf.n++;return;}
+ const gn=norm([grav.x,grav.y,grav.z]);
+ // horizontal acceleration = the phone's motion with the vertical (gravity) part removed — works in any position
+ const a=e.acceleration;let lin;
+ if(a&&a.x!=null){const av=[a.x,a.y,a.z];const d=dot(av,gn);lin=Math.hypot(av[0]-d*gn[0],av[1]-d*gn[1],av[2]-d*gn[2]);}
+ else{const av=[g.x-grav.x,g.y-grav.y,g.z-grav.z];const d=dot(av,gn);lin=Math.hypot(av[0]-d*gn[0],av[1]-d*gn[1],av[2]-d*gn[2]);}
+ if(calibBuf){if(!calibBuf.skip){calibBuf.x+=g.x;calibBuf.y+=g.y;calibBuf.z+=g.z;calibBuf.n++;}return;}
  if(!calib||!S.started||emer)return;
- const rp=pitch-calib.p, rr=roll-calib.r;
+ const c0=dot(gn,calib.g0);
+ const rp=Math.atan2(dot(gn,calib.f),c0)*57.2958, rr=Math.atan2(dot(gn,calib.s),c0)*57.2958;
+ const tiltAll=Math.acos(Math.max(-1,Math.min(1,c0)))*57.2958;
  live.pitch=rp;live.roll=rr;live.gyro=gyro;live.g=mag;live.lin=lin;
  // ---- auto-pause when the phone is picked up (held upright to look at it) ----
- if(Math.abs(rp)>55&&gyro<120){if(!handT)handT=t;if(!S.paused&&t-handT>900){S.paused=true;fallCand=0;tiltStill=0;st='stance';stanceSamples=[];refreshLive();}}else handT=0;
+ if(S.mount==='shoe'&&Math.abs(rp)>55&&gyro<120){if(!handT)handT=t;if(!S.paused&&t-handT>900){S.paused=true;fallCand=0;tiltStill=0;st='stance';stanceSamples=[];refreshLive();}}else handT=0;
  if(S.paused){if(Math.abs(rp)<25&&Math.abs(rr)<25){if(!flatT)flatT=t;if(t-flatT>1000){S.paused=false;flatT=0;stanceStart=t;refreshLive();}}else flatT=0;return;}
  buf.push({t,mag,rp});if(buf.length>40)buf.shift();
- // ---- gait state machine (phone on top of the shoe) ----
+ // ---- gait state machine (shoe: foot swings; sock: shin swings) ----
  if(st==='stance'){
   if(t-stanceStart>100)stanceSamples.push({g:gyro,p:rp,r:rr});
   if(gyro>150){st='swing';swingStart=t;stillStart=0;closeStance();}
  }else{
-  if(gyro<55){if(!stillStart)stillStart=t;if(t-stillStart>60&&t-swingStart>220){st='stance';stanceStart=t;stanceSamples=[];stride(t);}}else stillStart=0;
+  if(gyro<(S.mount==='sock'?90:55)){if(!stillStart)stillStart=t;if(t-stillStart>60&&t-swingStart>220){st='stance';stanceStart=t;stanceSamples=[];stride(t);}}else stillStart=0;
   if(t-swingStart>4000){st='stance';stanceStart=t;stanceSamples=[];}
  }
  // ---- SLIP (accelerometer): the foot suddenly slides forward/sideways but is NOT rotating.
@@ -152,7 +167,8 @@ function onMotion(e){
  if(slideBuf.length>=4&&sAvg>=SLIP_TH&&gAvg<150&&t-lastSlip>2500&&t-swingStart>150){lastSlip=t;slideBuf=[];slip('sensor');}
  // ---- hard fall: strong impact, then the foot lies on its SIDE and stays still for 3 s ----
  if(mag>4&&!fallCand)fallCand=t;
- if(fallCand){const onSide=Math.abs(rr)>55&&Math.abs(rp)<45;
+ // shoe: the foot lies on its side. sock: the shin lies flat (leg on the ground).
+ if(fallCand){const onSide=S.mount==='shoe'?(Math.abs(rr)>55&&Math.abs(rp)<45):tiltAll>55;
   if(t-fallCand>800&&onSide&&gyro<30){if(!tiltStill)tiltStill=t;if(t-tiltStill>3000){fallCand=0;tiltStill=0;fall('sensor');}}else tiltStill=0;
   if(t-fallCand>8000){fallCand=0;tiltStill=0;}}
 }
@@ -164,7 +180,8 @@ function closeStance(){const s=stanceSamples;stanceSamples=[];if(s.length<3)retu
  for(const k of ['stancePitch','stanceRoll','pron'])if(S[k].length>200)S[k].shift();
  live.ground=p;updateTerrain();}
 function stride(t){let pk={mag:0,rp:0};for(const s of buf)if(t-s.t<260&&s.mag>pk.mag)pk=s;
- const type=pk.rp>9?'heel':pk.rp<-3?'fore':'mid';addStride(type,pk.mag,t);}
+ // shoe: toes up at landing = heel strike. sock: shin leans back at landing = heel strike (estimate).
+ const type=S.mount==='shoe'?(pk.rp>9?'heel':pk.rp<-3?'fore':'mid'):(pk.rp<-8?'heel':'mid');addStride(type,pk.mag,t);}
 function addStride(type,impact,t){
  S.strikes[type]++;S.impacts.push(impact);if(S.impacts.length>200)S.impacts.shift();
  S.strides.push(t||performance.now());S.steps+=2;S.lastImpact=impact;
@@ -172,7 +189,7 @@ function addStride(type,impact,t){
  checkHazards();refreshLive();}
 function updateTerrain(){
  if(S.slopeForced)setSlopeState(S.slopeForced);
- else{const r=S.stancePitch.slice(-3);if(r.length>=2){const m=median(r);setSlopeState(m>4?'up':m<-4?'down':'flat');}}
+ else{const r=S.stancePitch.slice(-3);if(r.length>=2){const m=median(r);const th=S.mount==='sock'?5:4;setSlopeState(m>th?'up':m<-th?'down':'flat');}}
  const rr=S.stanceRoll.slice(-4);if(rr.length<4)return;const m=avg(rr);const sd=Math.sqrt(avg(rr.map(x=>(x-m)**2)));live.unev=sd;
  if(sd>5&&performance.now()-S.lastUneven>15000){S.lastUneven=performance.now();S.uneven++;
   if(S.sharing)S.hazards.push({id:S.nextId++,pos:Math.max(.5,pos()),type:'uneven',label:'Uneven ground',reports:1,lap:lap()});
@@ -237,15 +254,15 @@ const tg=(on,act)=>`<button class="toggle ${on?'on':''}" data-act="${act}" aria-
 function navHTML(){return[['run','Run'],['map','Map'],['report','Report'],['buddy','Buddy'],['ar','AR']].map(([k,l])=>`<button data-tab="${k}" class="${tab===k?'sel':''}">${I(k)}${l}</button>`).join('');}
 function bannerHTML(){if(!S.banner)return'';return`<div class="banner" style="background:${S.banner.color}">${I('alert',28,'#fff')}<div><b>${S.banner.title}</b><span>${S.banner.sub}</span></div></div>${S.alertMode==='earbuds'?`<div class="pill dark" style="align-self:flex-start">${I('head',15,'#fff')} “${S.banner.msg}”</div>`:''}`;}
 function runHTML(){const a=analysis();const h=nextHazard();
- return`<div class="hdr"><div><div class="hT">Morning run</div><div class="hS">Ryan · ${S.foot} foot · ${S.paused?'<b style="color:var(--orange)">paused · phone in hand</b>':sensorsSeen?'sensors live':'no sensors yet'}</div></div><button class="pill dark" data-act="demo">${I('sliders',15,'#fff')} Demo</button></div>
+ return`<div class="hdr"><div><div class="hT">Morning run</div><div class="hS">Ryan · ${S.foot} ${S.mount==='sock'?'ankle':'shoe'} · ${S.paused?'<b style="color:var(--orange)">paused · phone in hand</b>':sensorsSeen?'sensors live':'no sensors yet'}</div></div><button class="pill dark" data-act="demo">${I('sliders',15,'#fff')} Demo</button></div>
  ${bannerHTML()}
  <div class="card stats"><div class="stat"><b id="vSteps">${S.steps}</b><span>Steps</span></div><div class="stat"><b id="vDist">${(S.steps*STEP_LEN).toFixed(0)} m</b><span>Distance</span></div><div class="stat"><b id="vCad">${a.cad}</b><span>Cadence</span></div></div>
  <div class="row"><span class="pill"><span class="d" style="background:${a.sc}"></span><span id="vStatus">${a.status}</span></span><span class="pill" id="vStrike">${S.lastStrike}</span>
  <span class="pill"><span class="d" style="background:${S.slope==='flat'?C.green:C.orange}"></span><span id="vSlope">${S.slope==='up'?'Uphill':S.slope==='down'?'Downhill':'Flat ground'}</span></span>${S.uneven?`<span class="pill"><span class="d" style="background:#8B5CF6"></span>Uneven ×${S.uneven}</span>`:''}</div>
  <div class="card"><div class="ctitle">Terrain alerts via</div><div class="seg"><button data-act="mode-earbuds" class="${S.alertMode==='earbuds'?'sel':''}">🎧 Earbuds</button><button data-act="mode-map" class="${S.alertMode==='map'?'sel':''}">🗺 Map</button></div>
  <p class="small" style="margin-top:10px">${!S.sharing?'Terrain sharing is off, so alerts are off.':h?`Next: <b style="color:var(--ink)">${h.label}</b>, ${Math.round(ahead(h))} m ahead`:''}</p></div>
- <div class="card"><div class="ctitle">How to use</div><p class="small">Phone flat on top of your shoe, screen up, top of the phone toward your toes. Put earbuds in and walk. Alerts come by voice, so you never need to look down.</p></div>
- <div class="card"><div class="tag" style="margin-bottom:8px">Live sensor data</div><div class="debug"><span>Foot tilt</span><span id="dP">${live.pitch.toFixed(0)}°</span><span>Side tilt</span><span id="dR">${live.roll.toFixed(0)}°</span><span>Rotation</span><span id="dG">${live.gyro.toFixed(0)}°/s</span><span>Impact</span><span id="dA">${live.g.toFixed(1)} g</span><span>Ground slope (last step)</span><span id="dS">${live.ground.toFixed(1)}°</span><span>Side wobble (4 steps)</span><span id="dU">${live.unev.toFixed(1)}°</span><span>Slide accel (130 ms avg, peak)</span><span id="dJ">${live.slideMax.toFixed(1)} m/s²</span></div><p class="small" style="margin-top:8px">Uphill when ground slope &gt; +4°, downhill &lt; −4°. Uneven ground when side wobble &gt; 5°. Slip when the foot’s average slide acceleration over 130 ms ≥ ${SLIP_TH} m/s² while it is not rotating. Research slip band: ${SLIP_LOW}–${SLIP_HIGH} m/s² (13.6 ± 10%, Iraqi et al. 2018).</p></div>`;}
+ <div class="card"><div class="ctitle">How to use</div><p class="small">${S.mount==='sock'?'Phone upright in your sock, snug against the ankle.':'Phone flat on top of your shoe, screen up, top toward your toes.'} Put earbuds in and walk. Alerts come by voice, so you never need to look down.</p></div>
+ <div class="card"><div class="tag" style="margin-bottom:8px">Live sensor data</div><div class="debug"><span>Forward tilt</span><span id="dP">${live.pitch.toFixed(0)}°</span><span>Side tilt</span><span id="dR">${live.roll.toFixed(0)}°</span><span>Rotation</span><span id="dG">${live.gyro.toFixed(0)}°/s</span><span>Impact</span><span id="dA">${live.g.toFixed(1)} g</span><span>Ground slope (last step)</span><span id="dS">${live.ground.toFixed(1)}°</span><span>Side wobble (4 steps)</span><span id="dU">${live.unev.toFixed(1)}°</span><span>Slide accel (130 ms avg, peak)</span><span id="dJ">${live.slideMax.toFixed(1)} m/s²</span></div><p class="small" style="margin-top:8px">Uphill when ground slope &gt; +4°, downhill &lt; −4°. Uneven ground when side wobble &gt; 5°. Slip when the foot’s average slide acceleration over 130 ms ≥ ${SLIP_TH} m/s² while it is not rotating. Research slip band: ${SLIP_LOW}–${SLIP_HIGH} m/s² (13.6 ± 10%, Iraqi et al. 2018).</p></div>`;}
 function seg(m0,m1,col){let d='';for(let k=0;k<=24;k++){const p=at(m0+(m1-m0)*k/24);d+=(k?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}return`<path d="${d}" stroke="${col}" stroke-width="7" fill="none" stroke-linecap="round"/>`;}
 const PTS=[[34,350],[62,298],[108,262],[146,226],[166,176],[214,146],[246,96],[282,36]];
 const SEGL=(()=>{const L=[0];for(let i=1;i<PTS.length;i++)L.push(L[i-1]+Math.hypot(PTS[i][0]-PTS[i-1][0],PTS[i][1]-PTS[i-1][1]));return L})();
@@ -304,7 +321,7 @@ setInterval(()=>{if(tab==='run'){const a=analysis();const set=(id,v)=>{const e=d
 /* ================= overlays ================= */
 function renderOverlay(){const o=document.getElementById('overlay');
  if(!S.started){o.innerHTML=startHTML();return;}
- if(calibBuf){o.innerHTML=`<div class="over" style="background:var(--bg)"><div class="ring"><svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="88" stroke="var(--soft)" stroke-width="9" fill="none"/></svg><div class="n" id="calN">3<small>stand still</small></div></div><h3>Calibrating</h3><p class="small">Stand still with the phone on your shoe.</p></div>`;return;}
+ if(calibBuf){o.innerHTML=`<div class="over" style="background:var(--bg)"><div class="ring"><svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="88" stroke="var(--soft)" stroke-width="9" fill="none"/></svg><div class="n" id="calN">3<small>${calibPhase==='lean'?'hold':'stand still'}</small></div></div><h3>${calibPhase==='lean'?(S.mount==='sock'?'Bend your knee forward':'Lift your toes'):'Stand still'}</h3><p class="small">${calibPhase==='lean'?(S.mount==='sock'?'Keep your foot flat on the floor and push your knee forward, then hold.':'Keep your heel down, lift your toes up, then hold.'):'Step 1 of 2 · stand straight and still.'}</p></div>`;return;}
  if(!emer){o.innerHTML='';return;}
  if(emer.state==='count'){const R=88,L=2*Math.PI*R,frac=emer.t/15;
   o.innerHTML=`<div class="over" style="background:${C.red};color:#fff">${I('alert',44,'#fff')}<h3>Hard fall detected</h3><p style="font-size:15px;opacity:.95">No response? We’ll alert ${Object.entries(S.buddies).filter(([,v])=>v).map(([k])=>k).join(' and ')||'your buddies'}.</p>
@@ -314,10 +331,11 @@ function renderOverlay(){const o=document.getElementById('overlay');
 function startHTML(){return`<div class="over" style="background:var(--bg);justify-content:flex-start;padding-top:calc(env(safe-area-inset-top) + 40px);overflow-y:auto">
  <div class="tag">DESN444 · Prototype</div><h3 style="font-size:36px">SoleMate</h3><p class="small" style="max-width:320px">Your phone acts as the smart insole. It senses your steps, landings, slopes, slips and falls with its real motion sensors.</p>
  <div class="card" style="width:100%;display:flex;flex-direction:column;gap:12px">
-  <div class="mount"><span class="n">1</span><span class="small" style="color:var(--ink)">Put the phone <b>flat on top of your shoe</b>, screen up, top of the phone toward your toes. Hold it with an armband or rubber bands.</span></div>
+  <div class="mount"><span class="n">1</span><span class="small" style="color:var(--ink)">${S.mount==='sock'?'Slide the phone <b>upright into your sock</b> on the side of your ankle/shin, top of the phone pointing up. Pull the sock up so it can’t wobble.':'Put the phone <b>flat on top of your shoe</b>, screen up, top of the phone toward your toes. Hold it with an armband or rubber bands.'}</span></div>
   <div class="mount"><span class="n">2</span><span class="small" style="color:var(--ink)">Put in your <b>earbuds</b> (or turn the volume up).</span></div>
-  <div class="mount"><span class="n">3</span><span class="small" style="color:var(--ink)">Tap start, then <b>stand still for 3 seconds</b> to calibrate.</span></div></div>
- <div style="width:100%"><div class="tag" style="text-align:left;margin-bottom:8px">Phone is on my</div><div class="seg"><button data-act="foot-left" class="${S.foot==='left'?'sel':''}">Left foot</button><button data-act="foot-right" class="${S.foot==='right'?'sel':''}">Right foot</button></div></div>
+  <div class="mount"><span class="n">3</span><span class="small" style="color:var(--ink)">Tap start, <b>stand still 3 s</b>, then <b>${S.mount==='sock'?'bend your knee forward':'lift your toes'} 3 s</b> to calibrate.</span></div></div>
+ <div style="width:100%"><div class="tag" style="text-align:left;margin-bottom:8px">Phone is</div><div class="seg"><button data-act="mount-sock" class="${S.mount==='sock'?'sel':''}">In my sock</button><button data-act="mount-shoe" class="${S.mount==='shoe'?'sel':''}">On my shoe</button></div></div>
+ <div style="width:100%"><div class="tag" style="text-align:left;margin-bottom:8px">On my</div><div class="seg"><button data-act="foot-left" class="${S.foot==='left'?'sel':''}">Left leg</button><button data-act="foot-right" class="${S.foot==='right'?'sel':''}">Right leg</button></div></div>
  <button class="btn dark full" data-act="start" style="font-size:16px;padding:16px">Start SoleMate</button>
  <p class="small">No phone sensors? Use the Demo button on the Run screen.</p></div>`;}
 function demoSheet(open){const s=document.getElementById('sheet');s.classList.toggle('open',open);if(!open)return;
@@ -337,11 +355,18 @@ async function start(){S.started=true;try{actx=actx||new AudioContext();await ac
  window.addEventListener('deviceorientationabsolute',ori);window.addEventListener('deviceorientation',ori);
  try{wakeLock=await navigator.wakeLock.request('screen');}catch(e){}
  calibrate();}
-function calibrate(){calibBuf={p:0,r:0,n:0};speak('Calibrating. Stand still.',100);let n=3;renderOverlay();
- const iv=setInterval(()=>{n--;const e=document.getElementById('calN');if(e&&n>0)e.firstChild.nodeValue=n;
-  if(n<=0){clearInterval(iv);if(calibBuf.n>5)calib={p:calibBuf.p/calibBuf.n,r:calibBuf.r/calibBuf.n};else calib={p:0,r:0};
-   calibBuf=null;st='stance';stanceStart=performance.now();renderOverlay();render();
-   if(!sensorsSeen)toast('No motion sensors found. Use the Demo button.');else speak('SoleMate is ready. Start walking.',100);}},1000);}
+const setCalN=n=>{const e=document.getElementById('calN');if(e&&n>0)e.firstChild.nodeValue=n;};
+function calibrate(){calibBuf={x:0,y:0,z:0,n:0,skip:false};calibPhase='still';speak('Calibrating. Stand still.',100);let n=3;renderOverlay();
+ const iv=setInterval(()=>{n--;setCalN(n);if(n>0)return;clearInterval(iv);
+  const ok0=calibBuf.n>5, g0=ok0?norm([calibBuf.x,calibBuf.y,calibBuf.z]):[0,0,1];
+  calibBuf={x:0,y:0,z:0,n:0,skip:true};calibPhase='lean';renderOverlay();
+  speak(S.mount==='sock'?'Now bend your knee forward and hold.':'Now lift your toes and hold.',100);
+  let m=3;const iv2=setInterval(()=>{m--;setCalN(m);if(m===2)calibBuf.skip=false;if(m>0)return;clearInterval(iv2);
+   const g1=calibBuf.n>5?norm([calibBuf.x,calibBuf.y,calibBuf.z]):null;
+   calib=buildCalib(g0,g1);calibBuf=null;calibPhase=null;st='stance';stanceStart=performance.now();S.stancePitch=[];S.stanceRoll=[];
+   renderOverlay();render();
+   if(!sensorsSeen)toast('No motion sensors found. Use the Demo button.');
+   else{speak(calib.learned?'SoleMate is ready. Start walking.':'I could not feel the lean, so I used default directions. You can recalibrate in Demo.',100);if(!calib.learned)toast('Lean not detected · using default directions (Demo → Recalibrate)');}},1000);},1000);}
 async function startCam(){if(camStream)return attachCam();try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});attachCam();}catch(e){}}
 function attachCam(){const v=document.getElementById('cam');if(v&&camStream&&v.srcObject!==camStream)v.srcObject=camStream;}
 function stopCam(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}}
@@ -355,6 +380,7 @@ document.getElementById('app').addEventListener('click',e=>{
  const tb=e.target.closest('[data-tab]');if(tb){tab=tb.dataset.tab;render();return;}
  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
  if(a==='foot-left'||a==='foot-right'){S.foot=a.slice(5);renderOverlay();return;}
+ if(a==='mount-sock'||a==='mount-shoe'){S.mount=a.slice(6);renderOverlay();return;}
  if(a==='start'){start();return;}
  if(a==='demo'){demoSheet(true);return;}if(a==='demo-close'){demoSheet(false);return;}
  if(a==='mode-earbuds'||a==='mode-map')S.alertMode=a.slice(5);
@@ -373,7 +399,7 @@ document.getElementById('app').addEventListener('click',e=>{
  else if(a.startsWith('slip-')){SLIP_TH=parseFloat(a.slice(5));demoSheet(true);}
  else if(a.startsWith('len-')){STEP_LEN=parseFloat(a.slice(4));demoSheet(true);}
  else if(a==='d-recal'){demoSheet(false);calibrate();return;}
- else if(a==='d-reset'){const f=S.foot;S=fresh();S.foot=f;S.started=true;demoSheet(false);}
+ else if(a==='d-reset'){const f=S.foot,mt=S.mount;S=fresh();S.foot=f;S.mount=mt;S.started=true;demoSheet(false);}
  render();});
 render();
 </script>
