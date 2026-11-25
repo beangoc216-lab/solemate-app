@@ -643,9 +643,10 @@ function trekHTML(){const t=S.trek;
  ${t.members.length?`<div class="tag" style="margin:10px 0 2px">What each person sees of you</div>${t.members.map(row).join('')}`:`<p class="small" style="padding:8px 0">Waiting for people to scan…</p>`}
  ${iAmAdmin?(S.addOpen?`<div style="border-top:1px solid var(--soft);margin-top:8px;padding-top:8px">${Object.keys(PEOPLE).filter(k=>!t.members.includes(k)&&t.admin!==k).map(k=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}" aria-hidden="true">${k[0]}</div><div class="tx"><b>${k}</b><span>${PEOPLE[k].rel}</span></div><button class="pm add" data-act="add-${k}" aria-label="Add ${k}">+</button></div>`).join('')||'<p class="small">Everyone is in the group.</p>'}<button class="btn full" data-act="add-close" style="margin-top:6px">Done</button></div>`:`<button class="btn full" data-act="add-open" style="margin-top:10px">+ Add people</button>`):''}
  <button class="btn full" data-act="grp-leave" style="margin-top:12px;color:var(--red)">${iAmAdmin?'End group':'Leave group'}</button></div>`;}
-function buddyHTML(){const t=S.trek;return`<div class="hdr"><div><h1 class="hT">Group</h1></div></div>
- ${trekHTML()}
- ${t&&t.members.length?`<h2 class="ctitle" style="font-size:18px;margin-top:6px">Map</h2>${mapHTML(true)}`:''}<div style="height:60px"></div>`;}
+function buddyHTML(){const t=S.trek,has=t&&t.members.length,gt=has?(S.grpTab||'members'):'members';return`<div class="hdr"><div><h1 class="hT">Group</h1></div></div>
+ ${has?`<div class="seg" role="tablist" aria-label="Group view" style="margin-bottom:12px">${[['members','Members'],['map','Map']].map(([k,l])=>`<button role="tab" aria-selected="${gt===k}" data-act="gtab-${k}" class="${gt===k?'sel':''}">${l}</button>`).join('')}</div>`:''}
+ ${gt==='map'?`<button class="btn dark full" data-act="find-all" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px">${I('ar',17,'#fff')} See everyone’s footsteps in AR</button>${mapHTML(true)}`:trekHTML()}
+ <div style="height:60px"></div>`;}
 function safetyHTML(){const a=analysis();return`<div class="hdr"><div><h1 class="hT">Safety</h1><div class="hS">Help when you need it</div></div></div>
  <button class="sos-big" data-act="sos"><span class="sos-c">SOS</span><span><b>Get help now</b><span>Texts Emma &amp; Mom your exact location, then calls 911</span></span></button>
  <div class="card" style="box-shadow:0 0 0 2px ${C.red} inset,var(--sh)"><h2 class="ctitle" style="color:${C.red};font-size:16px">Safety</h2>
@@ -667,10 +668,13 @@ function safetyHTML(){const a=analysis();return`<div class="hdr"><div><h1 class=
    (only within ~6 m of you, fading in), like fresh prints in front of you.
    Fallback (other phones): the camera view + a ground plane computed from the phone's tilt and
    compass; your own steps (phone in hand) move you along the trail.                                 */
-let fpImgs=null;
-function fpCanvas(right){const c=document.createElement('canvas');c.width=96;c.height=240;const x=c.getContext('2d');
+let fpImgs=null;const fpTint={};
+const fpFor=(k,right)=>{const c=S.arTarget==='all'?PEOPLE[k].c:'';if(!c){if(!fpImgs)fpImgs=[fpCanvas(false),fpCanvas(true)];return fpImgs[right?1:0];}if(!fpTint[c])fpTint[c]=[fpCanvas(false,c),fpCanvas(true,c)];return fpTint[c][right?1:0];};
+const arTargets=()=>{const mem=S.trek?S.trek.members:[];return S.arTarget==='all'?mem:S.arTarget?[S.arTarget]:[];};
+const relDeg=k=>{if(arBear[k]==null&&heading!=null)arBear[k]=(heading+PEOPLE[k].b+720)%360;return heading!=null&&arBear[k]!=null?((arBear[k]-heading+540)%360)-180:0;};
+function fpCanvas(right,col){const c=document.createElement('canvas');c.width=96;c.height=240;const x=c.getContext('2d');
  x.translate(48,120);if(right)x.scale(-1,1);
- x.fillStyle='rgba(46,38,31,.9)';
+ x.fillStyle=col||'rgba(46,38,31,.9)';if(col)x.globalAlpha=.92;
  x.beginPath();x.ellipse(4,-50,30,56,-0.1,0,Math.PI*2);x.fill();          // ball of the foot
  x.beginPath();x.ellipse(-3,66,22,40,0.06,0,Math.PI*2);x.fill();          // heel
  x.beginPath();x.moveTo(-20,4);x.quadraticCurveTo(-8,34,-22,66);x.lineTo(16,66);x.quadraticCurveTo(12,24,26,0);x.closePath();x.fill();  // arch
@@ -684,30 +688,30 @@ function trailPt(i){const s=1.2+i*TRAIL_STEP;return{s,lat:(i%2?0.09:-0.09)+0.35*
 function arLoop(){if(tab!=='ar'||xrState){arLoopOn=false;return;}arLoopOn=true;requestAnimationFrame(arLoop);
  const cv=document.getElementById('arCv');if(!cv)return;const W=cv.clientWidth,H=cv.clientHeight;if(!W)return;
  if(cv.width!==W*2){cv.width=W*2;cv.height=H*2;}const x=cv.getContext('2d');x.setTransform(2,0,0,2,0,0);x.clearRect(0,0,W,H);
- const k=S.arTarget;if(!k)return;if(!fpImgs)fpImgs=[fpCanvas(false),fpCanvas(true)];
+ const T=arTargets();if(!T.length)return;
  const beta=devBeta==null?62:Math.max(15,Math.min(88,devBeta));      // 90 = phone upright, looking at the horizon
  const th=(90-beta)*D2R,h=1.35,f=W*1.05,cx=W/2,cy=H/2;   // f: ~50° horizontal view, like a phone camera in portrait
- if(arBear[k]==null&&heading!=null)arBear[k]=(heading+PEOPLE[k].b+720)%360;
- const yaw=heading!=null&&arBear[k]!=null?(((arBear[k]-heading+540)%360)-180)*D2R:0;
- const proj=(al,lt)=>{const X=al*Math.sin(yaw)+lt*Math.cos(yaw),Z=al*Math.cos(yaw)-lt*Math.sin(yaw);const d=Z*Math.cos(th)+h*Math.sin(th);if(d<0.25)return null;
-  return{x:cx+f*X/d,y:cy+f*(h*Math.cos(th)-Z*Math.sin(th))/d,d};};
- const now=performance.now(),items=[];
- for(let i=0;i<60;i++){const p=trailPt(i),al=p.s-arWalk;if(al<0.3||al>REVEAL+0.5)continue;
-  const a=Math.min(1,(REVEAL-al)/0.8)*Math.min(1,(al-0.3)/0.4);if(a<=0)continue;
-  if(!arSeen[i])arSeen[i]=now;const pop=Math.max(0,1-(now-arSeen[i])/350);
-  const hl=0.14*(1+0.12*pop),heel=proj(al-hl,p.lat-p.tan*hl),toe=proj(al+hl,p.lat+p.tan*hl);if(!heel||!toe)continue;
-  const len=Math.hypot(toe.x-heel.x,toe.y-heel.y),wd=0.11*(1+0.12*pop)*f/((heel.d+toe.d)/2);
-  items.push({d:(heel.d+toe.d)/2,a:a*0.82,cxp:(heel.x+toe.x)/2,cyp:(heel.y+toe.y)/2,ang:Math.atan2(toe.y-heel.y,toe.x-heel.x)+Math.PI/2,len,wd,img:fpImgs[p.right?1:0]});}
+ const now=performance.now(),items=[],marks=[];
+ for(const k of T){const yaw=relDeg(k)*D2R;
+  const proj=(al,lt)=>{const X=al*Math.sin(yaw)+lt*Math.cos(yaw),Z=al*Math.cos(yaw)-lt*Math.sin(yaw);const d=Z*Math.cos(th)+h*Math.sin(th);if(d<0.25)return null;
+   return{x:cx+f*X/d,y:cy+f*(h*Math.cos(th)-Z*Math.sin(th))/d,d};};
+  for(let i=0;i<60;i++){const p=trailPt(i),al=p.s-arWalk;if(al<0.3||al>REVEAL+0.5)continue;
+   const a=Math.min(1,(REVEAL-al)/0.8)*Math.min(1,(al-0.3)/0.4);if(a<=0)continue;
+   const sk=k+i;if(!arSeen[sk])arSeen[sk]=now;const pop=Math.max(0,1-(now-arSeen[sk])/350);
+   const hl=0.14*(1+0.12*pop),heel=proj(al-hl,p.lat-p.tan*hl),toe=proj(al+hl,p.lat+p.tan*hl);if(!heel||!toe)continue;
+   const len=Math.hypot(toe.x-heel.x,toe.y-heel.y),wd=0.11*(1+0.12*pop)*f/((heel.d+toe.d)/2);
+   items.push({d:(heel.d+toe.d)/2,a:a*0.82,cxp:(heel.x+toe.x)/2,cyp:(heel.y+toe.y)/2,ang:Math.atan2(toe.y-heel.y,toe.x-heel.x)+Math.PI/2,len,wd,img:fpFor(k,p.right)});}
+  const fd=memberDist(k)-arWalk;const fpnt=fd>0.5&&fd<300?proj(Math.min(fd,REVEAL+4),0):null;   // friend marker at the end of the trail
+  if(fpnt)marks.push([k,fpnt]);}
  items.sort((m,n)=>n.d-m.d);
  for(const it of items){x.save();x.globalAlpha=it.a;x.translate(it.cxp,it.cyp);x.rotate(it.ang);x.drawImage(it.img,-it.wd/2,-it.len/2,it.wd,it.len);x.restore();}
- const fd=memberDist(k)-arWalk;const fpnt=fd>0.5&&fd<40?proj(Math.min(fd,REVEAL+4),0):null;   // friend marker at the end of the trail
- if(fpnt){const r=Math.max(9,26*Math.min(1,4/fpnt.d));x.globalAlpha=1;x.fillStyle=PEOPLE[k].c;x.strokeStyle='#fff';x.lineWidth=3;x.beginPath();x.arc(fpnt.x,fpnt.y-r*2.2,r,0,Math.PI*2);x.fill();x.stroke();
+ for(const [k,fpnt] of marks){const r=Math.max(9,26*Math.min(1,4/fpnt.d));x.globalAlpha=1;x.fillStyle=PEOPLE[k].c;x.strokeStyle='#fff';x.lineWidth=3;x.beginPath();x.arc(fpnt.x,fpnt.y-r*2.2,r,0,Math.PI*2);x.fill();x.stroke();
   x.fillStyle='#fff';x.font=`800 ${Math.round(r*.95)}px Inter`;x.textAlign='center';x.textBaseline='middle';x.fillText(k[0],fpnt.x,fpnt.y-r*2.2);}}
 let arLoopOn=false;
 function arStepDetect(mag,t){ // phone in hand while using AR: count steps to move along the trail
- if(!arStep.hi&&mag>1.17&&t-arStep.t>320){arStep.hi=true;arStep.t=t;arWalk+=0.7;const e=document.getElementById('vTarget');if(e&&S.arTarget)e.textContent=`${S.arTarget} · ${Math.max(0,Math.round(memberDist(S.arTarget)-arWalk))} m`;}
+ if(!arStep.hi&&mag>1.17&&t-arStep.t>320){arStep.hi=true;arStep.t=t;arWalk+=0.7;const e=document.getElementById('vTarget');if(e&&S.arTarget&&S.arTarget!=='all')e.textContent=`${S.arTarget} · ${Math.max(0,Math.round(memberDist(S.arTarget)-arWalk))} m`;}
  else if(arStep.hi&&mag<1.04)arStep.hi=false;}
-async function startXR(){const k=S.arTarget;if(!k)return;let THREE;
+async function startXR(){const T=arTargets();if(!T.length)return;const all=S.arTarget==='all';let THREE;
  try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');}catch(e){toast('Could not load AR. Check your internet.');return;}
  const ui=document.getElementById('xrUI');ui.style.display='flex';
  ui.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="pill" id="xrMsg">Point at the ground and move slowly</span><button class="pill dark" data-act="xr-exit">Close</button></div><div></div>`;
@@ -718,42 +722,46 @@ async function startXR(){const k=S.arTarget;if(!k)return;let THREE;
  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.01,60);
  const ref=await session.requestReferenceSpace('local'),viewer=await session.requestReferenceSpace('viewer');const hts=await session.requestHitTestSource({space:viewer});
  const mk=c=>{const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;};
- const tex=[mk(fpCanvas(false)),mk(fpCanvas(true))];
+ const tex={};for(const k of T)tex[k]=all?[mk(fpCanvas(false,PEOPLE[k].c)),mk(fpCanvas(true,PEOPLE[k].c))]:[mk(fpCanvas(false)),mk(fpCanvas(true))];
  const geo=new THREE.PlaneGeometry(0.11,0.28);geo.rotateX(-Math.PI/2);       // lies flat; toe points to -Z
  const reticle=new THREE.Mesh(new THREE.RingGeometry(0.07,0.09,40).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.8}));reticle.visible=false;scene.add(reticle);
- const friend=new THREE.Mesh(new THREE.SphereGeometry(0.09,24,16),new THREE.MeshBasicMaterial({color:PEOPLE[k].c}));friend.visible=false;scene.add(friend);
- const prints=[],ys=[];let floorY=null,origin=null,dir=null,side=null,next=0;
+ const tr=T.map(k=>{const fr=new THREE.Mesh(new THREE.SphereGeometry(0.09,24,16),new THREE.MeshBasicMaterial({color:PEOPLE[k].c}));fr.visible=false;scene.add(fr);return{k,fr,dir:null,side:null,next:0};});
+ const prints=[],ys=[];let floorY=null,origin=null;
  xrState={session,renderer};
  session.addEventListener('end',()=>{renderer.setAnimationLoop(null);renderer.dispose();ui.style.display='none';xrState=null;render();});
  renderer.setAnimationLoop((t,frame)=>{if(!frame)return;const pose=frame.getViewerPose(ref);if(!pose)return;const cp=pose.transform.position;
   const hits=frame.getHitTestResults(hts);
   if(hits.length){const hp=hits[0].getPose(ref);if(hp&&hp.transform.position.y<cp.y-0.5){ys.push(hp.transform.position.y);if(ys.length>40)ys.shift();floorY=median(ys);
    reticle.visible=!origin;reticle.position.set(hp.transform.position.x,floorY+0.003,hp.transform.position.z);}}
-  if(floorY!==null&&!origin&&ys.length>=12){            // floor found: start the trail 1.2 m ahead, toward the friend
+  if(floorY!==null&&!origin&&ys.length>=12){            // floor found: each person's trail starts 1.2 m out, toward them
    const o=pose.transform.orientation,q=new THREE.Quaternion(o.x,o.y,o.z,o.w),fwd=new THREE.Vector3(0,0,-1).applyQuaternion(q);fwd.y=0;fwd.normalize();
-   if(heading!=null){if(arBear[k]==null)arBear[k]=(heading+PEOPLE[k].b+720)%360;fwd.applyAxisAngle(new THREE.Vector3(0,1,0),-(((arBear[k]-heading+540)%360)-180)*D2R);}
-   dir=fwd;side=new THREE.Vector3(-dir.z,0,dir.x);origin=new THREE.Vector3(cp.x,floorY,cp.z);reticle.visible=false;
-   document.getElementById('xrMsg').textContent=`Follow ${k}’s footprints`;}
+   for(const r of tr){const d=fwd.clone();if(heading!=null)d.applyAxisAngle(new THREE.Vector3(0,1,0),-relDeg(r.k)*D2R);r.dir=d;r.side=new THREE.Vector3(-d.z,0,d.x);}
+   origin=new THREE.Vector3(cp.x,floorY,cp.z);reticle.visible=false;
+   document.getElementById('xrMsg').textContent=all?'Turn around to see everyone’s footprints':`Follow ${T[0]}’s footprints`;}
   if(origin){
-   while(next<500){const p=trailPt(next),P=origin.clone().addScaledVector(dir,p.s).addScaledVector(side,p.lat);if(Math.hypot(P.x-cp.x,P.z-cp.z)>REVEAL+1)break;
-    P.y=floorY+0.002+next*0.00002;
-    const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tex[p.right?1:0],transparent:true,opacity:0,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2}));
-    m.position.copy(P);m.rotation.y=Math.atan2(-dir.x,-dir.z)-Math.atan(p.tan)+(Math.sin(next*12.9898)*0.05);m.scale.setScalar(1.12);scene.add(m);prints.push(m);next++;}
+   for(const r of tr){
+    while(r.next<500){const p=trailPt(r.next),P=origin.clone().addScaledVector(r.dir,p.s).addScaledVector(r.side,p.lat);if(Math.hypot(P.x-cp.x,P.z-cp.z)>REVEAL+1)break;
+     P.y=floorY+0.002+r.next*0.00002;
+     const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tex[r.k][p.right?1:0],transparent:true,opacity:0,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2}));
+     m.position.copy(P);m.rotation.y=Math.atan2(-r.dir.x,-r.dir.z)-Math.atan(p.tan)+(Math.sin(r.next*12.9898)*0.05);m.scale.setScalar(1.12);scene.add(m);prints.push(m);r.next++;}
+    const fd=Math.min(memberDist(r.k),REVEAL+3);r.fr.position.copy(origin).addScaledVector(r.dir,fd+1.2);r.fr.position.y=floorY+0.9;r.fr.visible=memberDist(r.k)>1;}
    for(const m of prints){const d=Math.hypot(m.position.x-cp.x,m.position.z-cp.z),target=d<0.35?0:d<REVEAL?0.85:0;
     m.material.opacity+=(target-m.material.opacity)*0.07;if(m.material.opacity>0.05&&m.scale.x>1)m.scale.setScalar(Math.max(1,m.scale.x-0.006));}
-   const fd=Math.min(memberDist(k),REVEAL+3);friend.position.copy(origin).addScaledVector(dir,fd+1.2);friend.position.y=floorY+0.9;friend.visible=memberDist(k)>1;
-   const e=document.getElementById('xrMsg');if(e&&t%30<17)e.textContent=`${k} · ${Math.max(0,Math.round(memberDist(k)-Math.hypot(cp.x-origin.x,cp.z-origin.z)))} m`;}
+   const e=document.getElementById('xrMsg'),walked=Math.hypot(cp.x-origin.x,cp.z-origin.z);
+   if(e&&t%30<17)e.textContent=all?T.map(k=>`${k} ${Math.max(0,Math.round(memberDist(k)-walked))} m`).join(' · '):`${T[0]} · ${Math.max(0,Math.round(memberDist(T[0])-walked))} m`;}
   renderer.render(scene,camera);});}
 
-function arHTML(){const mem=S.trek?S.trek.members:[];if(!S.arTarget||!mem.includes(S.arTarget))S.arTarget=mem[0]||null;const k=S.arTarget;
+function arHTML(){const mem=S.trek?S.trek.members:[];if(!S.arTarget||(S.arTarget!=='all'&&!mem.includes(S.arTarget))||!mem.length)S.arTarget=mem.length?S.arTarget==='all'?'all':mem[0]:null;const k=S.arTarget;
  if(xrOK===null){xrOK=false;try{navigator.xr&&navigator.xr.isSessionSupported('immersive-ar').then(v=>{xrOK=!!v;if(tab==='ar')render();}).catch(()=>{});}catch(e){}}
- const top=`<div style="position:absolute;top:calc(env(safe-area-inset-top) + 14px);left:14px;right:14px;display:flex;gap:8px;overflow-x:auto"><span class="pill dark">AR</span>${mem.map(m=>`<button class="pill ${m===k?'dark':''}" data-act="ar-${m}"><span class="d" style="background:${PEOPLE[m].c}"></span>${m}</button>`).join('')}<button class="pill" data-tab="buddy">← Back</button></div>`;
+ const top=`<div style="position:absolute;top:calc(env(safe-area-inset-top) + 14px);left:14px;right:14px;display:flex;gap:8px;overflow-x:auto"><span class="pill dark">AR</span>${mem.length>1?`<button class="pill ${k==='all'?'dark':''}" data-act="ar-all">Everyone</button>`:''}${mem.map(m=>`<button class="pill ${m===k?'dark':''}" data-act="ar-${m}"><span class="d" style="background:${PEOPLE[m].c}"></span>${m}</button>`).join('')}<button class="pill" data-tab="buddy">← Back</button></div>`;
  if(!k)return`<div class="arwrap"><video id="cam" autoplay playsinline muted></video>${top}<div style="position:absolute;left:20px;right:20px;top:30%;background:#fff;border-radius:22px;padding:22px;text-align:center;box-shadow:var(--sh)"><b style="font-size:19px">Find your friends</b><p class="small" style="margin:6px 0 14px">Create or join a group to see their footprints.</p><button class="btn dark full" data-tab="buddy">Go to Group</button></div></div>`;
- return`<div class="arwrap"><video id="cam" autoplay playsinline muted></video><canvas id="arCv" role="img" aria-label="Camera view with ${k}’s footprints on the ground, ${Math.max(0,Math.round(memberDist(k)-arWalk))} metres away" style="position:absolute;inset:0;width:100%;height:100%"></canvas>${top}
- <div style="position:absolute;top:calc(env(safe-area-inset-top) + 62px);left:0;right:0;display:flex;justify-content:center"><span class="pill" style="font-size:14px;padding:9px 14px"><span class="d" style="background:${PEOPLE[k].c}"></span><span id="vTarget">${k} · ${Math.max(0,Math.round(memberDist(k)-arWalk))} m</span><span style="opacity:.5">·</span><span id="vTurn">${heading===null?'Walk forward':'Turn to find '+k}</span></span></div>
- <div style="position:absolute;left:14px;right:14px;bottom:14px;background:#fff;border-radius:22px;padding:14px 16px;box-shadow:var(--sh)"><b style="font-size:15px">${k}’s footprints</b><div class="small">Point the camera at the ground and walk.</div>
+ const all=k==='all',dist=m=>Math.max(0,Math.round(memberDist(m)-arWalk));
+ const who=all?'everyone':k;
+ return`<div class="arwrap"><video id="cam" autoplay playsinline muted></video><canvas id="arCv" role="img" aria-label="Camera view with ${all?mem.map(m=>m+'’s footprints, '+dist(m)+' metres').join('; '):k+'’s footprints on the ground, '+dist(k)+' metres away'}" style="position:absolute;inset:0;width:100%;height:100%"></canvas>${top}
+ <div style="position:absolute;top:calc(env(safe-area-inset-top) + 62px);left:0;right:0;display:flex;justify-content:center;padding:0 14px"><span class="pill" style="font-size:14px;padding:9px 14px;flex-wrap:wrap;justify-content:center">${all?mem.map(m=>`<span style="display:inline-flex;align-items:center;gap:4px"><span class="d" style="background:${PEOPLE[m].c}"></span>${m} <b id="vDir-${m}">${heading===null?'':'·'}</b> ${dist(m)} m</span>`).join('<span style="opacity:.4">|</span>'):`<span class="d" style="background:${PEOPLE[k].c}"></span><span id="vTarget">${k} · ${dist(k)} m</span><span style="opacity:.5">·</span><span id="vTurn">${heading===null?'Walk forward':'Turn to find '+k}</span>`}</span></div>
+ <div style="position:absolute;left:14px;right:14px;bottom:14px;background:#fff;border-radius:22px;padding:14px 16px;box-shadow:var(--sh)"><b style="font-size:15px">${all?'Everyone’s footprints':k+'’s footprints'}</b><div class="small">${all?'Each person has their own colour. Turn around to see each trail.':'Point the camera at the ground and walk.'}</div>
   ${xrOK?`<button class="btn dark full" data-act="xr-start" style="margin-top:10px">${I('ar',16,'#fff')} Real AR · prints on the ground</button>`:''}
-  <div class="row" style="margin-top:10px;flex-wrap:nowrap"><button class="btn sm ${xrOK?'':'dark'}" data-act="msg-${k}" style="flex:1;padding:11px">Message ${k}</button><button class="btn sm" data-act="arx-pin" style="flex:1;padding:11px">${I('pin',14)} Drop a pin</button></div>
+  <div class="row" style="margin-top:10px;flex-wrap:nowrap"><button class="btn sm ${xrOK?'':'dark'}" data-act="${all?'msg-group':'msg-'+k}" style="flex:1;padding:11px">Message ${all?'group':k}</button><button class="btn sm" data-act="arx-pin" style="flex:1;padding:11px">${I('pin',14)} Drop a pin</button></div>
   <div class="lrow" style="margin-top:4px;padding-bottom:0"><div class="tx"><b style="font-size:13px">Share my footprints</b></div>${tg(S.myTrail,'mytrail')}</div></div></div>`;}
 // keep keyboard + screen-reader focus inside whatever is on top, and label toggles/segments
 let lastModal='';
@@ -773,8 +781,9 @@ function refreshLive(){if(tab==='run'||tab==='buddy'||tab==='safety')render();}
 setInterval(()=>{const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
  set('dP',live.pitch.toFixed(0)+'°');set('dR',live.roll.toFixed(0)+'°');set('dG',live.gyro.toFixed(0)+'°/s');set('dA',live.g.toFixed(1)+' g');set('dS',(NAV.grade*100).toFixed(0)+'%');set('dZ',(live.dz*100).toFixed(0)+' cm / '+live.dd.toFixed(2)+' m');set('dU',live.unev.toFixed(1)+'°');set('dJ',(live.slideAvg||0).toFixed(1)+' m/s²');set('dK',live.slideMax.toFixed(2)+' m/s');
  if(tab==='run')set('vCad',analysis().cad);
- const k=S.arTarget;if(tab==='ar'&&k&&heading!==null){if(arBear[k]==null)arBear[k]=(heading+PEOPLE[k].b+720)%360;let rel=((arBear[k]-heading+540)%360)-180;
-  set('vTurn',Math.abs(rel)<15?`${k} is straight ahead`:rel>0?'Turn right →':'← Turn left');}},120);
+ const k=S.arTarget;if(tab==='ar'&&k&&heading!==null){
+  if(k==='all'){for(const m of arTargets()){const r=relDeg(m);set('vDir-'+m,Math.abs(r)<20?'↑':Math.abs(r)>150?'↓':r>0?'→':'←');}}
+  else{const rel=relDeg(k);set('vTurn',Math.abs(rel)<15?`${k} is straight ahead`:rel>0?'Turn right →':'← Turn left');}}},120);
 
 
 /* ================= overlays ================= */
@@ -969,6 +978,7 @@ document.getElementById('app').addEventListener('click',e=>{
   toast(nv==='hide'?`${k} can’t see you`:nv==='loc'?`${k} sees your location`:nv==='foot'?`${k} sees your footsteps in AR`:`${k} sees your location and footsteps`);}}
  else if(a.startsWith('add-')){const k=a.slice(4);if(S.trek&&!S.trek.members.includes(k)){S.trek.members.push(k);S.trek.vis[k]='loc+foot';if(k==='Emma'&&!S.msgs.length)S.msgs.push({id:Date.now(),from:'Emma',text:'Icy patch by the bridge!',pos:(pos()+PEOPLE.Emma.d*.6)%TRAIL_M});toast(`${k} added · you see each other’s footprints`);}}
  else if(a.startsWith('rm-')){const k=a.slice(3);if(S.trek&&S.trek.admin==='You'){S.trek.members=S.trek.members.filter(x=>x!==k);delete S.trek.vis[k];if(S.arTarget===k)S.arTarget=null;toast(`${k} removed from the group`);}}
+ else if(a.startsWith('gtab-')){S.grpTab=a.slice(5);}
  else if(a.startsWith('find-')){S.arTarget=a.slice(5);arWalk=0;arSeen={};S.mapPerson=null;S.tabHist.push(tab);tab='ar';}
  // AR
  else if(a==='arx-pin'){S.msgs.push({id:Date.now(),from:'You',text:'📍 I’m here',pos:pos()});toast('Pin dropped · it shows on the group map');}
