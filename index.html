@@ -162,7 +162,7 @@ const SOLE='M100 12C150 12 176 62 173 122C170 172 150 202 150 252C150 302 166 34
 function fresh(){return{family:['Emma','Mom'],famOpen:false,tabHist:[],pickDest:false,trek:null,showQR:false,ob:0,dest:null,voice:true,msgs:[],mapPerson:null,breakUntil:0,eta:0,fix:null,batLevel:null,foot:'right',mount:'sock',started:false,steps:0,strides:[],strikes:{heel:0,mid:0,fore:0},impacts:[],pron:[],stancePitch:[],
  lastStrike:'—',lastImpact:0,stanceRoll:[],paused:false,uneven:0,lastUneven:0,slope:'flat',slopeForced:null,slips:0,offset:0,sharing:true,alertMode:'earbuds',buddy:true,
  buddies:{Emma:true,Mom:true,Jake:false},alertsSent:[],banner:null,pulseId:null,
- hazards:[{id:1,pos:14,type:'ice',label:'Black ice',reports:8,lap:-1},{id:2,pos:34,type:'slope',label:'Steep slope',reports:5,lap:-1}],nextId:3,
+ hazards:[{id:1,pos:14,type:'ice',label:'Black ice',reports:8,lap:-1},{id:4,pos:24,type:'uneven',label:'Rocky ground',reports:3,lap:-1},{id:2,pos:34,type:'slope',label:'Steep slope',reports:5,lap:-1},{id:3,pos:48,type:'down',label:'Downhill',reports:4,lap:-1}],nextId:5,
  goal:8000,terrainLog:[],distM:0,stanceStartT:0,onBreak:false,addOpen:false,arTarget:null,mapZoom:1,mapPan:[0,0],mapSel:null,safeRoute:false,period:'day',check:null,lastStepT:0,coachOn:true,heelRun:0,myTrail:true,startT:Date.now()}}
 let devBeta=null,xrState=null,xrOK=null,arWalk=0,arStep={hi:false,t:0},arSeen={};
 let S=fresh(), tab='run', emer=null, bannerTimer=null, toastTimer=null, sensorsSeen=false, heading=null, arBear={}, dragMoved=false, camStream=null, wakeLock=null;
@@ -286,7 +286,8 @@ function climbCheck(t,dz,dd){const gap=t-(NAV.lastSw||-1e9);NAV.lastSw=t;if(S.mo
  else if(S.sensUp){const keep=dz>0.1&&dz<1.6;   // once climbing, a slower or shorter step still counts
   if(keep)NAV.noClimb=0;else if(++NAV.noClimb>=2)setClimb(false);}}
 function setClimb(on){if(on===!!S.sensUp)return;S.sensUp=on;NAV.noClimb=0;
- if(on){if(S.alertMode==='earbuds')speak('Uphill. Short steps, use the rail.');toast('Uphill · climbing');}
+ if(on){speak('Uphill. Short steps, use the rail.',0);toast('Uphill · climbing');try{navigator.vibrate&&navigator.vibrate([300,150,300]);}catch(e){}}
+ else S.climbEnd=Date.now();
  S.terrainLog.push({t:clk,s:on?'up':'flat'});refreshLive();}
 function classifyTerrain(){
  if(S.mount==='sock'&&!S.slopeForced)return;   // real sock data: ±18 cm per stride → slope from the route instead
@@ -485,17 +486,30 @@ function coachCue(a){if(S.onBreak)return'On a break. Start walking to resume.';
 function ringHTML(){const R=54,L=2*Math.PI*R,f=Math.min(1,S.steps/S.goal);
  return`<div style="position:relative;width:136px;height:136px;flex:none"><svg viewBox="0 0 136 136" width="136" height="136" style="transform:rotate(-90deg)"><circle cx="68" cy="68" r="${R}" stroke="var(--soft)" stroke-width="12" fill="none"/><circle cx="68" cy="68" r="${R}" stroke="var(--teal)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L*(1-f)}"/></svg>
  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><b id="vSteps" style="font-size:30px;font-weight:800;letter-spacing:-.04em">${S.steps.toLocaleString()}</b><span class="small">of ${S.goal.toLocaleString()} steps</span></div></div>`;}
-function runHTML(){const h=nextHazard();const sl0=terrainNow(),sl=sl0==='up'||sl0==='down'?sl0:'flat';
+function runHTML(){const h=nextHazard();const recent=S.mount==='sock'&&!S.sensUp&&Date.now()-(S.climbEnd||0)<15000;const sl0=recent?'up':terrainNow(),sl=sl0==='up'||sl0==='down'?sl0:'flat';
  const col=sl==='up'?C.orange:sl==='down'?C.blue:C.green,name={flat:'Flat ground',up:'Uphill',down:'Downhill'}[sl];
  const big=(icon,c,tag,title,sub,soft)=>`<div class="card" style="display:flex;align-items:center;gap:16px;padding:18px"><span style="width:60px;height:60px;border-radius:18px;background:${soft?c+'22':c};display:flex;align-items:center;justify-content:center;flex:none">${I(icon,30,soft?c:'#fff')}</span><div><div class="tag">${tag}</div><div style="font-size:23px;font-weight:800;letter-spacing:-.02em">${title}</div>${sub?`<div class="small">${sub}</div>`:''}</div></div>`;
  return`<div class="hdr"><div><div class="hS">Walking to</div><h1 class="hT" style="font-size:24px">${S.dest||'River Valley Trail'}</h1></div><button class="pill soft" data-act="demo">${I('sliders',15)} Demo</button></div>
+ ${walkMap()}
  ${bannerHTML()}
- ${S.onBreak?big('pause',C.orange,'Now',`Paused · ${S.breakMin||15} min`,'Ends '+new Date(S.breakUntil||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · walk to go on',true):big(sl,col,'Now',name,NAV.grade&&sl!=='flat'?Math.round(Math.abs(NAV.grade)*100)+'% grade':'',true)}
+ ${S.onBreak?big('pause',C.orange,'Now',`Paused · ${S.breakMin||15} min`,'Ends '+new Date(S.breakUntil||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · walk to go on',true):big(sl,col,'Now',name,recent?'Just climbed · top reached':S.sensUp?'Climbing · from your steps':NAV.grade&&sl!=='flat'&&S.mount!=='sock'?Math.round(Math.abs(NAV.grade)*100)+'% grade':'',true)}
  ${h?big(ICON[h.type]||'alert',HCOL[h.type]||C.red,'Next',h.label,`<b id="vNext">${Math.round(ahead(h))} m</b> ahead`,false):''}
  <div class="card stats"><div class="stat"><b id="vSteps">${S.steps.toLocaleString()}</b><span>Steps</span></div><div class="stat"><b id="vDist">${(S.steps*STEP_LEN).toFixed(0)} m</b><span>Distance</span></div><div class="stat"><b>${S.slips}</b><span>Slips</span></div></div>
  <div class="card" style="padding:12px 16px"><div class="lrow" style="padding:0"><div class="tx"><b>Share terrain data</b><span>${S.sharing?'On · only the ground, never you':'Off · no terrain alerts'}</span></div>${tg(S.sharing,'sharing')}</div></div>
  ${S.onBreak?`<button class="btn full" data-act="resume" style="background:var(--orange);color:#fff">Continue</button>`:`<button class="btn full" data-act="break" style="display:flex;align-items:center;justify-content:center;gap:8px">${I('pause',17)} Pause</button>`}
  <div style="height:60px"></div>`;}
+// small route map on Walk: the path coloured by terrain, + where you are, + a legend with distances
+function walkMap(){const p=at(pos()),tn=terrainNow(),me=tn==='up'?HCOL.up:tn==='down'?HCOL.down:C.blue;
+ const zone=h=>h.type==='ice'?4:10;
+ const segs=S.hazards.map(h=>seg(h.pos,Math.min(TRAIL_M,h.pos+zone(h)),HCOL[h.type]||C.red).replace('stroke-width="7"','stroke-width="11"')).join('');
+ const pins=S.hazards.map(h=>{const q=at(h.pos),c=HCOL[h.type]||C.red;return`<circle cx="${q[0]}" cy="${q[1]}" r="14" fill="${c}" stroke="#fff" stroke-width="3"/><text x="${q[0]}" y="${q[1]+5}" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">${GLYPH[h.type]||'!'}</text>`}).join('');
+ const here=h=>((pos()-h.pos+TRAIL_M)%TRAIL_M)<zone(h),list=S.hazards.slice().sort((a,b)=>(here(a)?-1:ahead(a))-(here(b)?-1:ahead(b)));
+ return`<div class="card" style="display:flex;gap:12px;align-items:center;padding:10px"><svg role="img" aria-label="Route map: ${list.map(h=>TYPEN[h.type]+' '+Math.round(ahead(h))+' metres ahead').join(', ')}" viewBox="0 10 316 370" style="width:48%;flex:none;display:block;border-radius:14px;background:#E6EAE1">
+ ${seg(0,TRAIL_M,'#A9B3AD').replace('stroke-width="7"','stroke-width="9"')}${segs}${pins}
+ <circle cx="${p[0]}" cy="${p[1]}" r="24" fill="${me}" opacity=".22"/><circle cx="${p[0]}" cy="${p[1]}" r="11" fill="${me}" stroke="#fff" stroke-width="4"/></svg>
+ <ul style="list-style:none;margin:0;padding:0;flex:1;display:flex;flex-direction:column;gap:9px;min-width:0">
+ <li style="display:flex;align-items:center;gap:8px;font-size:13.5px"><span aria-hidden="true" style="width:14px;height:14px;border-radius:50%;background:${me};flex:none"></span><b>You</b><span class="small" style="margin-left:auto">${tn==='up'?'Uphill':tn==='down'?'Downhill':'Flat'}</span></li>
+ ${list.map(h=>`<li style="display:flex;align-items:center;gap:8px;font-size:13.5px"><span aria-hidden="true" style="width:20px;height:20px;border-radius:50%;background:${HCOL[h.type]||C.red};color:#fff;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex:none">${GLYPH[h.type]||'!'}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${TYPEN[h.type]}</span><span class="small" style="margin-left:auto;white-space:nowrap">${((pos()-h.pos+TRAIL_M)%TRAIL_M)<zone(h)?'<b>Here</b>':Math.round(ahead(h))+' m'}</span></li>`).join('')}</ul></div>`;}
 function seg(m0,m1,col){let d='';for(let k=0;k<=24;k++){const p=at(m0+(m1-m0)*k/24);d+=(k?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}return`<path d="${d}" stroke="${col}" stroke-width="7" fill="none" stroke-linecap="round"/>`;}
 const PTS=[[34,350],[62,298],[108,262],[146,226],[166,176],[214,146],[246,96],[282,36]];
 const SEGL=(()=>{const L=[0];for(let i=1;i<PTS.length;i++)L.push(L[i-1]+Math.hypot(PTS[i][0]-PTS[i-1][0],PTS[i][1]-PTS[i-1][1]));return L})();
