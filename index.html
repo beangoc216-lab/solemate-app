@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#F5F3EF">
-<title>SoleMate – Phone Prototype</title>
+<meta name="theme-color" content="#0B0B0B">
+<title>SoleMate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#F5F3EF;--ink:#121214;--mute:#57575C;--soft:#ECE9E4;--teal:#12666B;--tealSoft:#E3EFEE;--red:#B3261E;--orange:#A84E0A;--green:#2A7A47;--blue:#2A5DB8;--sh:0 8px 24px rgba(0,0,0,.07)}
+:root{--bg:#F5F3EF;--ink:#121214;--mute:#57575C;--soft:#333;--teal:#12666B;--tealSoft:rgba(238,115,70,.16);--red:#B3261E;--orange:#A84E0A;--green:#2A7A47;--blue:#2A5DB8;--sh:0 8px 24px rgba(0,0,0,.07)}
 /* hide anything injected outside the app (e.g. the 'Powered by Netlify' badge) so it can't cover the menu */
 body>*:not(#app):not(script){display:none!important}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg)}
-body{font-family:Inter,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body{font-family:Inter,system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--bg)}
 .content{flex:1;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 18px) 18px 18px;display:flex;flex-direction:column;gap:12px}
@@ -42,7 +42,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .btn.full{width:100%}
 .seg{display:flex;background:var(--soft);border-radius:99px;padding:4px;gap:2px}
 .seg button{flex:1;padding:10px 6px;border-radius:99px;font-size:13px;font-weight:600;color:var(--mute)}
-.seg button.sel{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.seg button.sel{background:#fff;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .banner{border-radius:22px;padding:16px;color:#fff;display:flex;gap:12px;align-items:center;animation:pop .35s ease}
 .banner b{display:block;font-size:17px;letter-spacing:-.01em}
 .banner span{font-size:12.5px;opacity:.92}
@@ -84,7 +84,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .check{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 92px);z-index:28;background:var(--ink);color:#fff;border-radius:22px;padding:16px;box-shadow:0 12px 30px rgba(0,0,0,.25);animation:pop .3s ease}
 .check b{font-size:16px;display:block}.check p{font-size:12.5px;opacity:.8;margin:3px 0 12px}
 .check .row button{flex:1;padding:11px 8px;border-radius:99px;background:rgba(255,255,255,.14);font-size:13px;font-weight:700;color:#fff}
-.check .row button.w{background:#fff;color:var(--ink)}
+.check .row button.w{background:#fff;color:#fff}
 .bar{height:8px;border-radius:99px;background:var(--soft);overflow:hidden;flex:1}.bar i{display:block;height:100%;border-radius:99px}
 .brow{display:flex;align-items:center;gap:10px;font-size:12.5px;margin-top:8px}.brow span{width:92px;color:var(--mute)}.brow b{width:28px;text-align:right;font-size:12.5px}
 .ladder{display:flex;flex-direction:column;gap:8px;width:100%;text-align:left}
@@ -116,10 +116,52 @@ input:focus-visible{border-color:#12666B!important}
 .sos-big{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:var(--red);color:#fff;border-radius:24px;padding:18px;box-shadow:0 10px 24px rgba(179,38,30,.3)}
 .sos-big .sos-c{width:64px;height:64px;border-radius:50%;background:#fff;color:var(--red);font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;flex:none}
 .sos-big b{display:block;font-size:19px}.sos-big span span{font-size:13px}
-.pm{width:36px;height:36px;border-radius:50%;background:#FBE9E7;color:var(--red);font-size:22px;font-weight:700;line-height:1;flex:none;display:flex;align-items:center;justify-content:center}
-.pm.add{background:#E3EFEE;color:var(--teal)}
+.pm{width:36px;height:36px;border-radius:50%;background:rgba(210,63,47,.22);color:var(--red);font-size:22px;font-weight:700;line-height:1;flex:none;display:flex;align-items:center;justify-content:center}
+.pm.add{background:rgba(238,115,70,.16);color:var(--teal)}
 .backb{width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:var(--sh);font-size:20px;font-weight:700;flex:none;display:flex;align-items:center;justify-content:center;margin-right:10px}
 .hdr{align-items:center}
+
+/* ===== Bento dark theme (hi-fi v2): black background, solid colour tiles, Rubik ===== */
+:root{--bg:#0B0B0B;--card:#232323;--soft:#333333;--mute:rgba(255,255,255,.64);--coral:#EE7346;--yel:#FFD84D;--offw:#F5F5F2;--on:#111111;--teal:#EE7346;--tealSoft:rgba(238,115,70,.16);--red:#D23F2F;--sh:none}
+html,body,.app{background:#0B0B0B}
+body{font-family:Rubik,system-ui,sans-serif;color:#fff}
+.content{padding:calc(env(safe-area-inset-top) + 12px) 20px 124px;gap:12px}
+.hT{font-size:30px;font-weight:600;letter-spacing:-.02em}
+.card,.mini{background:var(--card);box-shadow:none;border-radius:28px}
+.small,.hS,.tag,.lrow .tx span,.stat span,.mini span,.leg span,.debug{color:var(--mute)}
+.stat b,.big{font-weight:500}
+.pill{background:var(--card);color:#fff;box-shadow:none}.pill.dark{background:#fff;color:#111}.pill.soft{background:var(--soft);color:#fff}
+.btn{background:var(--soft);color:#fff;font-weight:600;font-size:15px;padding:16px 18px}.btn.dark{background:#fff;color:#111}.btn.coral{background:var(--coral);color:#fff}.btn.red{background:var(--red)}
+.seg{background:var(--card)}.seg button{color:var(--mute)}.seg button.sel{background:#fff;color:#111;box-shadow:none}
+.toggle{background:#555}.toggle.on{background:var(--coral)}
+.nav{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 12px);background:#1C1C1C;border-radius:40px;box-shadow:0 10px 30px rgba(0,0,0,.55);padding:10px 8px;z-index:20}
+.nav button{color:rgba(255,255,255,.72);font-weight:500}.nav button.sel{color:var(--coral)}
+.toast{background:#fff;color:#111}
+.check{background:var(--card);border:1px solid rgba(255,255,255,.1)}
+.sheet{background:#161616;color:#fff}
+.backb{background:var(--card);color:#fff;box-shadow:none}
+.pm{background:rgba(210,63,47,.22);color:#FF8173}.pm.add{background:rgba(238,115,70,.22);color:var(--coral)}
+.ai{background:rgba(238,115,70,.14)}.risk{background:#2E2416}
+.mapbtns button{background:var(--card);color:#fff}
+input{background:var(--card)!important;color:#fff!important;border-color:#555!important}
+:focus-visible{outline-color:var(--coral)}
+.bar{background:var(--soft)}
+.tile{border-radius:28px;padding:18px;position:relative;text-align:left;display:block;width:100%;font:inherit}
+.t-coral{background:var(--coral);color:var(--on)}.t-yel{background:var(--yel);color:var(--on)}.t-white{background:var(--offw);color:var(--on)}.t-dark{background:var(--card);color:#fff}.t-red{background:var(--red);color:#fff}
+.t-coral .small,.t-yel .small,.t-white .small,.t-coral .tag,.t-yel .tag,.t-white .tag{color:#111}
+.tbig{font-size:40px;font-weight:500;letter-spacing:-.04em;line-height:1}
+.ttl{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+.circ{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;background:#111;color:#fff}
+.circ.w{background:#fff;color:#111}
+.tiles2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.topbar{display:flex;justify-content:flex-end;align-items:center;margin-bottom:-6px;min-height:24px}
+.ins{display:inline-flex;align-items:center;gap:6px;background:var(--card);border-radius:99px;padding:5px 11px;font-size:12px;font-weight:600}
+.chips{display:flex;gap:8px;overflow-x:auto}
+.chip{padding:10px 18px;border-radius:99px;background:var(--card);font-size:14px;font-weight:500;white-space:nowrap;color:#fff}.chip.sel{background:#fff;color:#111}
+.hold .hr .p{transition:stroke-dashoffset .2s linear}.hold.holding .hr .p{transition:stroke-dashoffset 3s linear;stroke-dashoffset:0}
+.splash{position:absolute;inset:0;z-index:90;background:var(--coral);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;transition:opacity .45s}.splash.out{opacity:0}
+.sel-tile{box-shadow:0 0 0 3px #fff inset}
+.banner{color:#111}.banner span{opacity:1}
 </style>
 </head>
 <body>
@@ -147,7 +189,7 @@ const ALERT_TYPES=['ice','up','down','slope'];   // flat or rocky ground: stay q
 const SLIP_AVG=13.6, SLIP_LOW=+(SLIP_AVG*0.9).toFixed(1), SLIP_HIGH=+(SLIP_AVG*1.1).toFixed(1);
 const SLIP_WIN=130;        // ms — the slip window measured in the study (20 ms -> 150 ms)
 let SLIP_TH=SLIP_LOW;      // m/s² (Demo → sensitivity can lower it for classroom tests)
-const C={teal:'#12666B',red:'#B3261E',orange:'#A84E0A',green:'#2A7A47',blue:'#2A5DB8',ink:'#121214'};
+const C={teal:'#EE7346',red:'#D23F2F',orange:'#DB7F2A',green:'#4ADE80',blue:'#3E8ED0',ink:'#121214'};
 const P={run:'<path d="M13 4a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/><path d="M7 21l3-6 3 2v5M10 15l1-6 4 3 3 1M8 9l3-1"/>',map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',report:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>',buddy:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c0-2.8-1.6-4.8-4-5.6"/>',ar:'<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3"/>',alert:'<path d="M12 3L2 20h20z"/><path d="M12 10v4M12 17h.01"/>',head:'<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',sliders:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'};
 Object.assign(P,{msg:'<path d="M4 5h16v11H9l-5 4z"/>',up:'<path d="M4 18L20 6M20 6h-7M20 6v7"/>',down:'<path d="M4 6l16 12M20 18h-7M20 18v-7"/>',flat:'<path d="M3 12h17M14 6l6 6-6 6"/>',ice:'<path d="M12 2v20M3.5 7l17 10M20.5 7l-17 10"/><path d="M9 4l3 2 3-2M9 20l3-2 3 2"/>',rock:'<path d="M3 19l4-8 4 3 3-6 7 11z"/>',check:'<path d="M5 12l5 5 9-10"/>',phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',pause:'<path d="M9 5v14M15 5v14"/>',pin:'<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',coach:'<path d="M12 3v3M5 6l2 2M19 6l-2 2"/><path d="M8 14a4 4 0 1 1 8 0c0 2-2 3-2 5h-4c0-2-2-3-2-5z"/><path d="M10 21h4"/>'});
 // people in the app
@@ -156,6 +198,10 @@ Object.defineProperty(window,'EMERGENCY',{get:()=>(typeof S!=='undefined'&&S.fam
 const WEEK=[['Mon',6200,71],['Tue',8400,73],['Wed',4100,70],['Thu',9300,75],['Fri',7700,76],['Sat',12600,74]];
 const MONTH=[['Wk 1',41200,69],['Wk 2',47800,71],['Wk 3',52100,73]];
 const I=(k,s=22,c='currentColor')=>`<svg aria-hidden="true" focusable="false" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[k]}</svg>`;
+const MARKD='M170 409C162 408 152 406 147 403C146 403 143 401 139 399C135 397 132 395 132 395C131 394 128 392 124 389C107 377 81 345 67 318C66 316 65 314 64 313C64 312 61 308 59 304C56 299 54 295 53 294C50 289 39 265 35 255C10 194 13 159 45 125C64 106 91 101 115 113C118 114 118 114 123 109C135 97 154 93 175 98C205 105 219 118 219 140C219 152 212 162 192 179C184 186 149 220 143 228C134 238 127 250 122 262C115 279 114 313 121 336C122 338 123 342 124 344C124 346 125 348 125 349C126 349 126 350 126 351C126 352 135 371 138 376C139 377 140 379 141 381C142 383 154 396 156 396C156 396 157 397 158 398C159 398 160 399 161 399C162 399 163 400 163 400C164 401 165 402 166 402C168 402 169 402 170 403C170 404 172 404 174 404C177 404 178 404 177 403C176 402 174 402 172 402C171 402 169 401 168 400C167 400 166 399 165 399C164 399 163 398 162 398C161 397 160 396 160 396C158 396 145 383 144 380C132 359 131 342 142 321C144 316 156 303 158 303C159 303 161 302 162 301C175 292 199 291 214 299C238 311 250 337 244 361C241 377 229 392 215 399C207 402 192 407 187 407C186 407 184 407 184 408C183 409 179 410 170 409ZM22 117C15 110 12 101 12 89C12 80 12 79 14 76C24 63 42 81 42 103C42 118 32 125 22 117ZM60 100C50 93 45 81 45 64C45 50 49 41 56 38C75 32 90 70 79 93C75 101 66 104 60 100ZM187 90C165 76 168 29 192 15C199 11 205 11 212 15C235 29 231 78 206 91C200 94 192 94 187 90ZM102 84C97 82 91 71 88 59C85 41 93 21 105 21C112 21 121 32 124 46C129 70 117 90 102 84ZM143 84C136 81 130 66 130 53C130 28 146 12 158 24C175 41 169 83 150 85C148 85 145 85 143 84Z';
+const LOGO=(h=28,c='currentColor')=>`<svg aria-hidden="true" width="${Math.round(h*249/417)}" height="${h}" viewBox="0 0 249 417"><path fill="${c}" fill-rule="evenodd" d="${MARKD}"/></svg>`;
+const DESTKM={'River Valley Trail':4.1,'MacEwan Campus':1.2,'Hawrelak Park':2.8,'Nearby trails':3};
+const insChip=()=>`<span class="ins" aria-label="Insole battery ${S.batLevel!=null?Math.round(S.batLevel*100)+' percent':'unknown'}">${LOGO(14,'#fff')}${S.batLevel!=null?Math.round(S.batLevel*100)+'%':'Insoles'}</span>`;
 const SOLE='M100 12C150 12 176 62 173 122C170 172 150 202 150 252C150 302 166 342 161 392C156 442 131 458 100 458C69 458 47 442 44 397C41 352 54 302 51 252C49 202 29 162 29 112C29 52 54 12 100 12Z';
 
 /* ================= state ================= */
@@ -376,7 +422,7 @@ function checkHazards(){const L=lap();for(const h of S.hazards){if(!ALERT_TYPES.
  else if(d>0&&d<=ALERT_M&&h.lap!==L){h.lap=L;h.earlyLap=L;alertHazard(h,d,false);}}}
 const EARLY={ice:'Ice in about 20 metres.',up:'Uphill in about 20 metres.',down:'Downhill in about 20 metres.',slope:'Steep slope in about 20 metres.'};
 const MSG={ice:'Ice ahead. Slow down and take short, flat steps.',up:'Uphill ahead. Short steps.',down:'Downhill ahead. Slow down.',slope:'Steep slope ahead. Take it easy.',uneven:'Rocky ground ahead. Watch your step.'};
-const HCOL={ice:'#B3261E',up:'#A84E0A',down:'#2A5DB8',slope:'#A84E0A',uneven:'#6B3FD1'};
+const HCOL={ice:'#3E8ED0',up:'#DB7F2A',down:'#5B8FE0',slope:'#DB7F2A',uneven:'#7A5BCF'};
 function alertHazard(h,d,early){
  if(!S.sharing){toast('Hazard ahead, but terrain alerts are off. Turn on sharing in Map.');return;}
  S.banner={title:early?`${h.label} coming up`:`${h.label} ahead`,sub:`in ${d.toFixed(0)} m`,msg:(early?EARLY[h.type]:MSG[h.type])||MSG.ice,color:HCOL[h.type]||C.red};
@@ -477,7 +523,7 @@ function mix(a,b,t){t=Math.max(0,Math.min(1,t));const p=h=>[1,3,5].map(i=>parseI
 const TGL={coach:'Form coach voice',sharing:'Share terrain data',buddy:'Buddy Mode',mytrail:'Share my footprints','b-Emma':'Share with Emma','b-Mom':'Share with Mom','b-Jake':'Share with Jake'};
 const tg=(on,act,label)=>`<button class="toggle ${on?'on':''}" data-act="${act}" role="switch" aria-checked="${on?'true':'false'}" aria-label="${label||TGL[act]||act}"></button>`;
 function navHTML(){const cur=tab==='ar'?'buddy':tab;return[['run','Walk'],['buddy','Group'],['safety','Safety'],['report','Report']].map(([k,l])=>`<button data-tab="${k}" class="${cur===k?'sel':''}" ${cur===k?'aria-current="page"':''}>${I(k==='safety'?'shield':k)}${l}</button>`).join('');}
-function bannerHTML(){if(!S.banner)return'';return`<div class="banner" role="alert" style="background:${S.banner.color}">${I('alert',28,'#fff')}<div><b>${S.banner.title}</b><span>${S.banner.sub}</span></div></div>${S.alertMode==='earbuds'?`<div class="pill dark" style="align-self:flex-start">${I('head',15,'#fff')} “${S.banner.msg}”</div>`:''}`;}
+function bannerHTML(){if(!S.banner)return'';return`<div class="banner" role="alert" style="background:${S.banner.color}">${I('alert',28,'#111')}<div><b>${S.banner.title}</b><span>${S.banner.sub}</span></div></div>${S.alertMode==='earbuds'?`<div class="pill dark" style="align-self:flex-start">${I('head',15,'#fff')} “${S.banner.msg}”</div>`:''}`;}
 function coachCue(a){if(S.onBreak)return'On a break. Start walking to resume.';
  if(a.score===null)return'Start walking. I’ll coach your landings and posture.';
  if(S.slope==='stairs-up')return'Stairs: one step at a time, use the rail.';
@@ -493,29 +539,28 @@ function ringHTML(){const R=54,L=2*Math.PI*R,f=Math.min(1,S.steps/S.goal);
  return`<div style="position:relative;width:136px;height:136px;flex:none"><svg viewBox="0 0 136 136" width="136" height="136" style="transform:rotate(-90deg)"><circle cx="68" cy="68" r="${R}" stroke="var(--soft)" stroke-width="12" fill="none"/><circle cx="68" cy="68" r="${R}" stroke="var(--teal)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L*(1-f)}"/></svg>
  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><b id="vSteps" style="font-size:30px;font-weight:800;letter-spacing:-.04em">${S.steps.toLocaleString()}</b><span class="small">of ${S.goal.toLocaleString()} steps</span></div></div>`;}
 function runHTML(){const h=nextHazard();const recent=S.mount==='sock'&&!S.sensUp&&Date.now()-(S.climbEnd||0)<15000;const sl0=recent?'up':terrainNow(),sl=sl0==='up'||sl0==='down'?sl0:'flat';
- const col=sl==='up'?C.orange:sl==='down'?C.blue:C.green,name={flat:'Flat ground',up:'Uphill',down:'Downhill'}[sl];
- const big=(icon,c,tag,title,sub,soft)=>`<div class="card" style="display:flex;align-items:center;gap:16px;padding:18px"><span style="width:60px;height:60px;border-radius:18px;background:${soft?c+'22':c};display:flex;align-items:center;justify-content:center;flex:none">${I(icon,30,soft?c:'#fff')}</span><div><div class="tag">${tag}</div><div style="font-size:23px;font-weight:800;letter-spacing:-.02em">${title}</div>${sub?`<div class="small">${sub}</div>`:''}</div></div>`;
- return`<div class="hdr"><div><div class="hS">Walking to</div><h1 class="hT" style="font-size:24px">${S.dest||'River Valley Trail'}</h1></div><button class="pill soft" data-act="demo">${I('sliders',15)} Demo</button></div>
- ${walkMap()}
+ const name={flat:'Flat ground',up:'Uphill',down:'Downhill'}[sl];
+ const km=DESTKM[S.dest]||3,left=Math.max(0,km-S.steps*STEP_LEN/1000),eta=new Date(Date.now()+left/4.5*3600000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+ const soon=h&&ahead(h)<=EARLY_M;
+ const nowT=S.onBreak?`Paused · ${S.breakMin||15} min`:name,nowS=S.onBreak?'Ends '+new Date(S.breakUntil||Date.now()).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+' · walk to go on':recent?'Just climbed · top reached':S.sensUp?'Climbing · from your steps':soon?`Heads-up: ${h.label.toLowerCase()} ahead`:'No alerts, you’re good';
+ const nowI=S.onBreak?'pause':sl==='up'?'up':sl==='down'?'down':'check';
+ return`<div class="hdr"><div><h1 class="hT" style="font-size:26px">${S.dest||'River Valley Trail'}</h1><div class="hS" style="font-size:14px">${left.toFixed(1)} km to go · ETA ${eta}</div></div><button class="pill soft" data-act="demo">${I('sliders',15)} Demo</button></div>
+ <div class="tile ${S.onBreak?'t-yel':'t-coral'}" role="status"><div class="tag" style="font-weight:700">Right now</div><div class="ttl" style="margin-top:4px">${nowT}</div><div class="small" style="margin-top:2px">${nowS}</div><span class="circ" style="position:absolute;right:18px;top:50%;transform:translateY(-50%)">${I(nowI,22,'#fff')}</span></div>
  ${bannerHTML()}
- ${S.onBreak?big('pause',C.orange,'Now',`Paused · ${S.breakMin||15} min`,'Ends '+new Date(S.breakUntil||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · walk to go on',true):big(sl,col,'Now',name,recent?'Just climbed · top reached':S.sensUp?'Climbing · from your steps':NAV.grade&&sl!=='flat'&&S.mount!=='sock'?Math.round(Math.abs(NAV.grade)*100)+'% grade':'',true)}
- ${h?big(ICON[h.type]||'alert',HCOL[h.type]||C.red,'Next',h.label,`<b id="vNext">${Math.round(ahead(h))} m</b> ahead`,false):''}
- <div class="card stats"><div class="stat"><b id="vSteps">${S.steps.toLocaleString()}</b><span>Steps</span></div><div class="stat"><b id="vDist">${(S.steps*STEP_LEN).toFixed(0)} m</b><span>Distance</span></div><div class="stat"><b>${S.slips}</b><span>Slips</span></div></div>
- <div class="card" style="padding:12px 16px"><div class="lrow" style="padding:0"><div class="tx"><b>Share terrain data</b><span>${S.sharing?'On · only the ground, never you':'Off · no terrain alerts'}</span></div>${tg(S.sharing,'sharing')}</div></div>
- ${S.onBreak?`<button class="btn full" data-act="resume" style="background:var(--orange);color:#fff">Continue</button>`:`<button class="btn full" data-act="break" style="display:flex;align-items:center;justify-content:center;gap:8px">${I('pause',17)} Pause</button>`}
- <div style="height:60px"></div>`;}
+ ${walkMap()}
+ <div class="tiles2"><div class="tile t-yel"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:500">Coming up</span>${h?I(ICON[h.type]||'alert',22,'#111'):''}</div>${h?`<div class="tbig" style="margin-top:22px"><b id="vNext" style="font-weight:500">${Math.round(ahead(h))} m</b></div><div class="small" style="margin-top:6px">${h.label}</div>`:'<div class="tbig" style="margin-top:22px;font-size:30px">All clear</div>'}</div>
+ <div class="tile t-white"><span style="font-weight:500">Today</span><div class="tbig" style="margin-top:22px"><b id="vSteps" style="font-weight:500">${S.steps.toLocaleString()}</b></div><div class="small" style="margin-top:6px">steps · <span id="vDist">${(S.steps*STEP_LEN).toFixed(0)} m</span> · ${S.slips} slip${S.slips===1?'':'s'}</div></div></div>
+ <div class="tiles2">${S.onBreak?`<button class="btn dark" data-act="resume">Continue</button>`:`<button class="btn dark" data-act="break" style="display:flex;align-items:center;justify-content:center;gap:8px">${I('pause',17)} Pause</button>`}<button class="btn" data-act="endwalk" style="display:flex;align-items:center;justify-content:center;gap:8px">${I('x',17)} End walk</button></div>`;}
 // small route map on Walk: the path coloured by terrain, + where you are, + a legend with distances
 function walkMap(){const p=at(pos()),tn=terrainNow(),me=tn==='up'?HCOL.up:tn==='down'?HCOL.down:C.blue;
  const zone=h=>h.type==='ice'?4:10;
  const segs=S.hazards.map(h=>seg(h.pos,Math.min(TRAIL_M,h.pos+zone(h)),HCOL[h.type]||C.red).replace('stroke-width="7"','stroke-width="11"')).join('');
- const pins=S.hazards.map(h=>{const q=at(h.pos),c=HCOL[h.type]||C.red;return`<circle cx="${q[0]}" cy="${q[1]}" r="14" fill="${c}" stroke="#fff" stroke-width="3"/><text x="${q[0]}" y="${q[1]+5}" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">${GLYPH[h.type]||'!'}</text>`}).join('');
+ const pins=S.hazards.map(h=>{const q=at(h.pos),c=HCOL[h.type]||C.red;return`<circle cx="${q[0]}" cy="${q[1]}" r="14" fill="${c}" stroke="#1E1E1E" stroke-width="4"/><text x="${q[0]}" y="${q[1]+5}" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">${GLYPH[h.type]||'!'}</text>`}).join('');
  const here=h=>((pos()-h.pos+TRAIL_M)%TRAIL_M)<zone(h),list=S.hazards.slice().sort((a,b)=>(here(a)?-1:ahead(a))-(here(b)?-1:ahead(b)));
- return`<div class="card" style="display:flex;gap:12px;align-items:center;padding:10px"><svg role="img" aria-label="Route map: ${list.map(h=>TYPEN[h.type]+' '+Math.round(ahead(h))+' metres ahead').join(', ')}" viewBox="0 10 316 370" style="width:48%;flex:none;display:block;border-radius:14px;background:#E6EAE1">
- ${seg(0,TRAIL_M,'#A9B3AD').replace('stroke-width="7"','stroke-width="9"')}${segs}${pins}
- <circle cx="${p[0]}" cy="${p[1]}" r="24" fill="${me}" opacity=".22"/><circle cx="${p[0]}" cy="${p[1]}" r="11" fill="${me}" stroke="#fff" stroke-width="4"/></svg>
- <ul style="list-style:none;margin:0;padding:0;flex:1;display:flex;flex-direction:column;gap:9px;min-width:0">
- <li style="display:flex;align-items:center;gap:8px;font-size:13.5px"><span aria-hidden="true" style="width:14px;height:14px;border-radius:50%;background:${me};flex:none"></span><b>You</b><span class="small" style="margin-left:auto">${tn==='up'?'Uphill':tn==='down'?'Downhill':'Flat'}</span></li>
- ${list.map(h=>`<li style="display:flex;align-items:center;gap:8px;font-size:13.5px"><span aria-hidden="true" style="width:20px;height:20px;border-radius:50%;background:${HCOL[h.type]||C.red};color:#fff;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex:none">${GLYPH[h.type]||'!'}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${TYPEN[h.type]}</span><span class="small" style="margin-left:auto;white-space:nowrap">${((pos()-h.pos+TRAIL_M)%TRAIL_M)<zone(h)?'<b>Here</b>':Math.round(ahead(h))+' m'}</span></li>`).join('')}</ul></div>`;}
+ return`<div class="card" style="padding:10px;background:#1E1E1E;position:relative"><svg role="img" aria-label="Trail map: ${list.map(h=>TYPEN[h.type]+' '+Math.round(ahead(h))+' metres ahead').join(', ')}" viewBox="0 10 316 370" preserveAspectRatio="xMidYMid meet" style="width:100%;height:230px;display:block">
+ ${seg(0,TRAIL_M,'#EE7346').replace('stroke-width="7"','stroke-width="8"')}${segs}${pins}
+ <circle cx="${p[0]}" cy="${p[1]}" r="26" fill="#fff" opacity=".18"/><circle cx="${p[0]}" cy="${p[1]}" r="12" fill="#fff" stroke="#EE7346" stroke-width="5"/></svg>
+ <div style="display:flex;flex-wrap:wrap;gap:6px 12px;padding:6px 6px 4px;font-size:12px"><span style="display:inline-flex;align-items:center;gap:5px"><span aria-hidden="true" style="width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #EE7346"></span>You · ${tn==='up'?'Uphill':tn==='down'?'Downhill':'Flat'}</span>${[['ice','Ice'],['uneven','Rocky'],['up','Uphill'],['down','Downhill']].map(([k,l])=>`<span style="display:inline-flex;align-items:center;gap:5px"><span aria-hidden="true" style="width:9px;height:9px;border-radius:50%;background:${HCOL[k]}"></span>${l}</span>`).join('')}</div></div>`;}
 function seg(m0,m1,col){let d='';for(let k=0;k<=24;k++){const p=at(m0+(m1-m0)*k/24);d+=(k?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}return`<path d="${d}" stroke="${col}" stroke-width="7" fill="none" stroke-linecap="round"/>`;}
 const PTS=[[34,350],[62,298],[108,262],[146,226],[166,176],[214,146],[246,96],[282,36]];
 const SEGL=(()=>{const L=[0];for(let i=1;i<PTS.length;i++)L.push(L[i-1]+Math.hypot(PTS[i][0]-PTS[i-1][0],PTS[i][1]-PTS[i-1][1]));return L})();
@@ -541,8 +586,8 @@ function mapHTML(embedded){const p=at(pos());
  const sel=S.hazards.find(h=>h.id===S.mapSel);
  return`${embedded?'':`<div class="hdr"><div><h1 class="hT">Map</h1><div class="hS">${S.dest||'River Valley Trail'}</div></div></div>
  ${S.alertMode==='map'?bannerHTML():''}
- `}<div class="card" style="padding:8px;position:relative"><svg id="mapSvg" role="img" aria-label="Trail map: you, ${(S.trek?S.trek.members.length:0)} group members and ${S.hazards.length} terrain points. Use the lists below to select them." viewBox="0 0 316 390" style="width:100%;display:block;border-radius:16px;background:#E6EAE1;touch-action:none"><g id="mapG" transform="${mapT()}">
- <rect x="-600" y="-600" width="1500" height="1600" fill="#E6EAE1"/>
+ `}<div class="card" style="padding:8px;position:relative"><svg id="mapSvg" role="img" aria-label="Trail map: you, ${(S.trek?S.trek.members.length:0)} group members and ${S.hazards.length} terrain points. Use the lists below to select them." viewBox="0 0 316 390" style="width:100%;display:block;border-radius:16px;background:#1E1E1E;touch-action:none"><g id="mapG" transform="${mapT()}">
+ <rect x="-600" y="-600" width="1500" height="1600" fill="#1E1E1E"/>
  <path d="M-300 230C60 200 120 300 200 260S330 300 620 300" stroke="#C6DAEA" stroke-width="30" fill="none"/><path d="M-300 124L620 86M116 -300L144 700" stroke="#fff" stroke-width="8" fill="none"/>
  <circle cx="40" cy="120" r="26" fill="#D3DEC9"/><circle cx="260" cy="250" r="34" fill="#D3DEC9"/><circle cx="230" cy="340" r="22" fill="#D3DEC9"/>
  ${seg(0,60,'#8E9A94')}${safe}${pins}
@@ -598,7 +643,7 @@ function reportHTML(){const a=analysis();const today=isoDay(new Date()),sel=S.re
  const sum=issues.length?`Today ${issues.join(', ')}.`:'Clean form today. Keep it up.';
  const tip=a.landing==='Hard'?'Take shorter, quicker steps and land softly under your hips.':a.rolling==='Rolling in'?'2-min ankle and arch warm-up: calf raises + towel scrunches.':a.cv>.2?'Try walking to a steady beat (about 110 steps a minute).':'Same pace tomorrow, and add 5 minutes.';
  return head+`<div class="card"><div class="tag">Form Score</div><div style="display:flex;gap:10px;align-items:flex-end;margin-top:6px"><div class="big">${a.score}</div><div style="padding-bottom:6px"><span style="font-size:16px;font-weight:700;color:var(--mute)">/ 100</span><div class="small" style="color:${a.sc};font-weight:700">${a.status.replace('Form: ','')}</div></div></div>
- <p class="small" style="margin-top:6px"><b style="color:${C.green}">80+ good</b> · <b style="color:${C.orange}">62–79 OK</b> · <b style="color:${C.red}">under 62 work on it</b></p>
+ <p class="small" style="margin-top:6px"><b style="color:${C.green}">80+ good</b> · <b style="color:${C.orange}">62–79 OK</b> · <b style="color:#FF8173">under 62 work on it</b></p>
  <div style="margin-top:4px">${scoreParts(a).map(([l,v])=>`<div class="brow"><span>${l}</span><div class="bar"><i style="width:${v}%;background:${barCol(v)}"></i></div><b>${v}</b></div>`).join('')}</div>
  <div class="ai">✦ ${sum}</div></div>
  <div class="card"><h2 class="ctitle">Foot pressure</h2>${sole(a.share,110)}
@@ -642,14 +687,14 @@ async function startScan(){const o=document.getElementById('overlay');
   if(window.jsQR)go();else{const sc=document.createElement('script');sc.src='jsqr.js';sc.onload=go;sc.onerror=()=>{toast('Could not load the scanner. Use your Camera app to scan the code.');};document.head.appendChild(sc);}}}
 function stopScan(){clearInterval(scanTimer);clearTimeout(scanTimer);if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}document.getElementById('overlay').innerHTML='';renderOverlay();}
 function trekHTML(){const t=S.trek;
- if(!t)return`<div class="card" style="text-align:center;padding:22px"><span style="width:64px;height:64px;border-radius:20px;background:#E3EFEE;display:inline-flex;align-items:center;justify-content:center">${I('buddy',32,C.teal)}</span>
+ if(!t)return`<div class="card" style="text-align:center;padding:22px"><span style="width:64px;height:64px;border-radius:20px;background:rgba(238,115,70,.16);display:inline-flex;align-items:center;justify-content:center">${I('buddy',32,C.teal)}</span>
   <div style="font-size:19px;font-weight:800;margin:10px 0 4px">Walk together</div><div class="small" style="margin-bottom:16px">Create a group, or scan a code to join one.</div>
   <button class="btn dark full" data-act="grp-create">Create a group</button><button class="btn full" data-act="grp-scan" style="margin-top:8px">Scan to join</button></div>`;
  const iAmAdmin=t.admin==='You';const adminBadge=`<span class="pill" style="padding:3px 8px;font-size:10.5px;background:${C.ink};color:#fff;box-shadow:none">Admin</span>`;
  const row=k=>{const v=t.vis[k]||'loc';return`<div style="padding:10px 0;border-top:1px solid var(--soft)"><div class="lrow" style="padding:0"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div class="tx"><b style="display:flex;align-items:center;gap:6px">${k} ${t.admin===k?adminBadge:''}</b><span>${memberDist(k)} m away</span></div>
    <button class="btn sm" data-act="msg-${k}" aria-label="Message ${k}" style="padding:7px 10px">${I('msg',14)}</button><button class="btn sm" data-act="find-${k}" aria-label="Find ${k} with camera" style="padding:7px 10px">${I('ar',14)}</button>${iAmAdmin?`<button class="pm" data-act="rm-${k}" aria-label="Remove ${k}">−</button>`:''}</div>
    <div class="seg" role="group" aria-label="What ${k} can see of you" style="margin-top:8px;padding:3px">${VIS.map(([m,l])=>{const on=m==='hide'?v==='hide':v.includes(m);return`<button data-act="vis-${k}-${m}" aria-pressed="${on}" class="${on?'sel':''}" style="padding:7px 4px;font-size:12px">${m!=='hide'&&on?'✓ ':''}${l}</button>`}).join('')}</div></div>`;};
- return`<div class="card"><div class="hdr"><div><div style="font-size:18px;font-weight:800">${t.name}</div><div class="small">Code <b style="color:var(--ink)">${t.code}</b> · ${t.members.length+1} people</div></div><button class="pill soft" data-act="grp-qr">${I('ar',14)} ${S.showQR?'Hide':'QR'}</button></div>
+ return`<div class="card"><div class="hdr"><div><div style="font-size:18px;font-weight:800">${t.name}</div><div class="small">Code <b style="color:#fff">${t.code}</b> · ${t.members.length+1} people</div></div><button class="pill soft" data-act="grp-qr">${I('ar',14)} ${S.showQR?'Hide':'QR'}</button></div>
  ${S.showQR?`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin:14px 0 4px">${qrSVG(joinURL(t))}<div class="small">Scan with the phone camera to join</div></div>`:''}
  <div class="lrow" style="margin-top:10px"><div class="av" style="background:var(--ink)">R</div><div class="tx"><b style="display:flex;align-items:center;gap:6px">Ryan (you) ${iAmAdmin?adminBadge:''}</b><span>${iAmAdmin?'You created this group':'Member'}</span></div></div>
  ${t.members.length?`<div class="tag" style="margin:10px 0 2px">What each person sees of you</div>${t.members.map(row).join('')}`:`<p class="small" style="padding:8px 0">Waiting for people to scan…</p>`}
@@ -659,21 +704,17 @@ function buddyHTML(){const t=S.trek,has=t&&t.members.length,gt=has?(S.grpTab||'m
  ${has?`<div class="seg" role="tablist" aria-label="Group view" style="margin-bottom:12px">${[['members','Members'],['map','Map']].map(([k,l])=>`<button role="tab" aria-selected="${gt===k}" data-act="gtab-${k}" class="${gt===k?'sel':''}">${l}</button>`).join('')}</div>`:''}
  ${gt==='map'?`<button class="btn dark full" data-act="find-all" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px">${I('ar',17,'#fff')} See everyone’s footsteps in AR</button>${mapHTML(true)}`:trekHTML()}
  <div style="height:60px"></div>`;}
-function safetyHTML(){const a=analysis();return`<div class="hdr"><div><h1 class="hT">Safety</h1><div class="hS">Help when you need it</div></div></div>
- <button class="sos-big" data-act="sos"><span class="sos-c">SOS</span><span><b>Get help now</b><span>Texts Emma &amp; Mom your exact location, then calls 911</span></span></button>
- <div class="card" style="box-shadow:0 0 0 2px ${C.red} inset,var(--sh)"><h2 class="ctitle" style="color:${C.red};font-size:16px">Safety</h2>
- <div class="small" style="margin-bottom:6px">We ask you first. No answer → we text Emma &amp; Mom your exact location.</div>
- ${[['alert','Hard fall','20 s → family, 45 s → 911'],['ice','Slip, then no movement','20 s → family'],['run','Stopped 90 s → “Did you fall?”','30 s → family, 2 min → 911'],['pause','Pause runs over','30 s → family'],['pin','Late to destination','1 min → family'],['phone','Battery under 10%','Last location → family']].map(([i,n,r])=>`<div class="lrow"><span style="width:34px;height:34px;border-radius:11px;background:#FBE9E7;display:flex;align-items:center;justify-content:center;flex:none">${I(i,17,C.red)}</span><div class="tx"><b style="font-size:14px">${n}</b><span>${r}</span></div></div>`).join('')}
- ${S.alertsSent.length?`<p class="small">Alerts sent today: ${S.alertsSent.join(', ')}</p>`:''}</div> <div class="card"><div class="lrow" style="padding:0"><div class="tx"><b style="font-size:16px">Buddy Mode</b><span>Only on when you turn it on</span></div>${tg(S.buddy,'buddy')}</div>
- <div style="margin-top:10px;background:var(--bg);border-radius:16px;padding:12px"><div class="tag">What your buddies see</div><div style="font-size:15px;font-weight:700;margin-top:6px">${!S.buddy?'Ryan is offline':S.onBreak?'Ryan paused ☕':'Ryan is walking'}</div>
- ${S.buddy?(()=>{const h=nextHazard(),tn=terrainNow(),sl=tn==='up'?'Uphill':tn==='down'?'Downhill':'Flat ground';return`<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:13.5px">
-  <div style="display:flex;gap:8px;align-items:center">${I('pin',16,C.teal)}<span><b>${S.dest||'Nearby trails'}</b> · ${(S.steps*STEP_LEN).toFixed(0)} m in</span></div>
-  <div style="display:flex;gap:8px;align-items:center">${I(sl==='Uphill'?'up':sl==='Downhill'?'down':'flat',16,C.teal)}<span>Terrain now: <b>${sl}</b></span></div>
-  ${h?`<div style="display:flex;gap:8px;align-items:center">${I(ICON[h.type]||'alert',16,HCOL[h.type])}<span>Next: <b>${h.label}</b> in ${Math.round(ahead(h))} m</span></div>`:''}</div>`;})():''}</div>
- <h2 class="ctitle" style="margin-top:12px">Family <span class="small">· also your emergency contacts</span></h2>
+function safetyHTML(){const fam=EMERGENCY.join(' & ');return`<div class="hdr"><div><h1 class="hT">Safety</h1><div class="hS">We always ask you first. You stay in control.</div></div></div>
+ <button class="tile t-red hold" data-hold="sos" style="min-height:172px">
+  <div style="font-size:46px;font-weight:700;letter-spacing:-.03em;line-height:1">SOS</div><div style="font-weight:500;font-size:15px;margin-top:12px">Press and hold for 3 seconds</div><div style="font-size:13px;max-width:190px;margin-top:4px;line-height:1.4">Texts ${fam} your exact location, then calls 911.</div>
+  <svg class="hr" aria-hidden="true" width="104" height="104" viewBox="0 0 104 104" style="position:absolute;right:18px;top:50%;margin-top:-52px;transform:rotate(-90deg)"><circle cx="52" cy="52" r="46" stroke="rgba(255,255,255,.3)" stroke-width="7" fill="none"/><circle class="p" cx="52" cy="52" r="46" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="289.03" stroke-dashoffset="289.03"/><circle cx="52" cy="52" r="34" fill="#fff"/></svg><span aria-hidden="true" style="position:absolute;right:18px;width:104px;top:50%;margin-top:-11px;text-align:center;font-weight:700;color:var(--red)">Hold</span></button>
+ <div class="tile t-dark"><div style="font-size:17px;font-weight:500;margin-bottom:8px">When we alert</div>
+ ${[['alert','Hard fall','20 s family · 45 s 911'],['ice','Slip, then no movement','20 s family'],['run','Stopped 90 s','asks “Did you fall?”'],['pause','Pause runs over','30 s family'],['pin','Late to destination','1 min family'],['phone','Phone or insoles under 10%','last location']].map(([i,n,r])=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14px">${I(i,18,'#fff')}<span style="flex:1;font-weight:500">${n}</span><span class="small" style="text-align:right">${r}</span></div>`).join('')}
+ ${S.alertsSent.length?`<p class="small" style="margin-top:6px">Alerts sent today: ${S.alertsSent.join(', ')}</p>`:''}</div>
+ <div class="tile t-dark"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:17px;font-weight:500">Emergency contacts</span>${S.famOpen?'':`<button data-act="fam-open" style="color:var(--coral);font-weight:600;font-size:14px">+ Add</button>`}</div>
  ${S.family.map(k=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}" aria-hidden="true">${k[0]}</div><div class="tx"><b>${k}</b><span>${PEOPLE[k].rel}</span></div><button class="pm" data-act="fam-rm-${k}" aria-label="Remove ${k}">−</button></div>`).join('')||'<p class="small">No one yet. Add at least one person for emergencies.</p>'}
- ${S.famOpen?`<div style="border-top:1px solid var(--soft);margin-top:6px;padding-top:6px">${Object.keys(PEOPLE).filter(k=>!S.family.includes(k)).map(k=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}" aria-hidden="true">${k[0]}</div><div class="tx"><b>${k}</b><span>${PEOPLE[k].rel}</span></div><button class="pm add" data-act="fam-add-${k}" aria-label="Add ${k}">+</button></div>`).join('')||'<p class="small">Everyone is added.</p>'}<button class="btn full" data-act="fam-close" style="margin-top:6px">Done</button></div>`:`<button class="btn full" data-act="fam-open" style="margin-top:8px">+ Add person</button>`}</div>
-<div style="height:60px"></div>`;}
+ ${S.famOpen?`<div style="border-top:1px solid #333;margin-top:6px;padding-top:6px">${Object.keys(PEOPLE).filter(k=>!S.family.includes(k)).map(k=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}" aria-hidden="true">${k[0]}</div><div class="tx"><b>${k}</b><span>${PEOPLE[k].rel}</span></div><button class="pm add" data-act="fam-add-${k}" aria-label="Add ${k}">+</button></div>`).join('')||'<p class="small">Everyone is added.</p>'}<button class="btn full" data-act="fam-close" style="margin-top:6px">Done</button></div>`:''}</div>
+ <div class="tile t-yel"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:16px;font-weight:600">Buddy mode</div><div class="small">${S.buddy?(()=>{const h=nextHazard(),tn=terrainNow(),sl=tn==='up'?'uphill':tn==='down'?'downhill':'flat ground';return`Buddies see: ${S.onBreak?'paused':'walking'} on ${S.dest||'Nearby trails'}, ${sl}${h?`, ${h.label.toLowerCase()} in ${Math.round(ahead(h))} m`:''}`;})():'Off · buddies can’t see you'}</div></div>${tg(S.buddy,'buddy')}</div></div>`;}
 /* ================= AR footprints =================
    Real AR (Android Chrome, WebXR): the camera finds the actual floor (hit-test), footprints are laid
    ON it in world space, so they stay put when you move. New ones keep appearing ahead as you walk
@@ -785,7 +826,7 @@ function a11yModal(){const o=document.getElementById('overlay'),sheet=document.g
 function a11yPass(root){root.querySelectorAll('.seg:not([role=tablist])').forEach(g=>{g.setAttribute('role','group');g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('sel')?'true':'false'));});}
 const TITLES={run:'Walk',report:'Report',buddy:'Group',safety:'Safety',ar:'Find with camera'};
 function render(){document.getElementById('nav').innerHTML=navHTML();const c=document.getElementById('content');
- if(tab==='map')tab='buddy';c.innerHTML=tab==='run'?runHTML():tab==='report'?reportHTML():tab==='buddy'?buddyHTML():tab==='safety'?safetyHTML():arHTML();
+ if(tab==='map')tab='buddy';c.innerHTML=(tab==='ar'?'':`<div class="topbar">${insChip()}</div>`)+(tab==='run'?runHTML():tab==='report'?reportHTML():tab==='buddy'?buddyHTML():tab==='safety'?safetyHTML():arHTML());document.getElementById('nav').style.display=tab==='ar'?'none':'';
  document.title=(TITLES[tab]||'SoleMate')+' · SoleMate';{const h=c.querySelector('.hdr');if(h&&!h.querySelector('.backb'))h.insertAdjacentHTML('afterbegin',`<button class="backb" data-act="back" aria-label="${tab==='run'?'Back to destination':'Back'}">←</button>`);const t=h&&h.children[1];if(t)t.style.flex='1';}a11yPass(document.getElementById('app'));c.style.padding=tab==='ar'?'0':'';c.style.position=tab==='ar'?'relative':'';if(tab==='ar'){startCam();if(!arLoopOn)arLoop();}else stopCam();renderOverlay();}
 function refreshLive(){if(tab==='run'||tab==='buddy'||tab==='safety')render();}
 
@@ -826,32 +867,47 @@ function renderOverlay(){const o=document.getElementById('overlay');setTimeout(a
   <button class="btn full" style="background:#fff;color:${C.ink}" data-act="ok-after">I’m OK now, tell everyone</button><button class="btn full" style="${soft}" data-act="close">Close</button></div>`;}
 function insoleArt(){return`<svg viewBox="0 0 260 170" width="240" aria-hidden="true"><rect x="22" y="22" width="70" height="130" rx="14" fill="${C.ink}"/><rect x="30" y="34" width="54" height="104" rx="6" fill="#2b2f33"/><circle cx="57" cy="145" r="3" fill="#555"/>
  <path d="M112 86h30M134 78l8 8-8 8" stroke="${C.teal}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
- <g transform="translate(160 8) scale(.33)"><path d="${SOLE}" fill="#E3EFEE" stroke="${C.teal}" stroke-width="6"/><circle cx="72" cy="70" r="26" fill="${C.orange}" opacity=".55"/><circle cx="100" cy="380" r="36" fill="${C.red}" opacity=".45"/><circle cx="76" cy="170" r="28" fill="${C.teal}" opacity=".35"/></g></svg>`;}
+ <g transform="translate(160 8) scale(.33)"><path d="${SOLE}" fill="rgba(238,115,70,.16)" stroke="${C.teal}" stroke-width="6"/><circle cx="72" cy="70" r="26" fill="${C.orange}" opacity=".55"/><circle cx="100" cy="380" r="36" fill="${C.red}" opacity=".45"/><circle cx="76" cy="170" r="28" fill="${C.teal}" opacity=".35"/></g></svg>`;}
 function footArt(){return`<svg viewBox="0 0 300 220" width="250" aria-hidden="true"><rect x="96" y="0" width="70" height="150" rx="30" fill="#D9D4CC"/>
- <path d="M88 118h86v34c42 4 82 16 104 32 12 9 8 30-10 30H96c-14 0-20-10-20-22v-36z" fill="#E3EFEE" stroke="${C.teal}" stroke-width="3"/>
+ <path d="M88 118h86v34c42 4 82 16 104 32 12 9 8 30-10 30H96c-14 0-20-10-20-22v-36z" fill="rgba(238,115,70,.16)" stroke="${C.teal}" stroke-width="3"/>
  <rect x="104" y="28" width="54" height="104" rx="9" fill="${C.ink}"/><rect x="110" y="36" width="42" height="84" rx="4" fill="#3a3f44"/>
  <rect x="84" y="112" width="94" height="24" rx="8" fill="#CFE3E1" stroke="${C.teal}" stroke-width="3"/>
  <path d="M200 52V22M192 30l8-8 8 8" stroke="${C.orange}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
-function obDots(i){return`<p class="sr-only">Step ${i+1} of 4</p><div aria-hidden="true" style="display:flex;gap:6px;justify-content:center">${[0,1,2,3].map(k=>`<span style="width:${k===i?22:7}px;height:7px;border-radius:9px;background:${k===i?C.ink:'#8A847B'};transition:width .2s"></span>`).join('')}</div>`;}
+function obDots(i){return`<p class="sr-only">Step ${i+1} of 4</p><div aria-hidden="true" style="display:flex;gap:6px;justify-content:center">${[0,1,2,3].map(k=>`<span style="width:${k===i?22:7}px;height:7px;border-radius:9px;background:${k===i?'#fff':'#555'};transition:width .2s"></span>`).join('')}</div>`;}
 function startHTML(){const ob=S.pickDest?3:(S.ob||0);
- const wrap=(inner,btns)=>`<div class="over" role="dialog" aria-modal="true" aria-label="Set up SoleMate" style="background:var(--bg);justify-content:space-between;padding:calc(env(safe-area-inset-top) + 64px) 24px calc(env(safe-area-inset-bottom) + 26px);overflow-y:auto">${ob>0?`<button class="backb" data-act="${S.pickDest?'dest-done':'ob-back'}" aria-label="Back" style="position:absolute;left:16px;top:calc(env(safe-area-inset-top) + 14px)">←</button>`:''}<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px">${inner}</div><div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-top:20px">${S.pickDest?'':obDots(ob)}${btns}</div></div>`;
- if(ob===0)return wrap(`${S.pendingJoin?`<div class="pill dark">${I('buddy',15,'#fff')} Joining ${S.pendingJoin[2]||'a group'} · admin ${S.pendingJoin[1]}</div>`:''}<div class="tag">Prototype</div><h2 class="h3" style="font-size:42px">SoleMate</h2>${insoleArt()}<p style="font-size:18px;font-weight:700;max-width:290px;line-height:1.35">Your phone acts as the smart insole.</p><p class="small" style="max-width:280px">In the real product, the sensors are inside the insole.</p>
-  <div class="row" style="justify-content:center">${[['flat','Terrain ahead'],['ice','Slip check'],['phone','Fall help']].map(([i,l])=>`<span class="pill">${I(i,15,C.teal)}${l}</span>`).join('')}</div>`,
-  `<button class="btn dark full" style="font-size:16px;padding:16px" data-act="ob-next">Start</button>`);
- if(ob===1)return wrap(`<h2 class="h3">Put your phone in your right sock</h2>${footArt()}
-  <div class="card" style="width:100%;display:flex;flex-direction:column;gap:12px">${['Stand it upright in the sock','Against the outside of your shin, screen out','Fold the sock over so it can’t wobble'].map((x,i)=>`<div class="mount" style="align-items:center"><span class="n">${i+1}</span><b style="font-size:15px">${x}</b></div>`).join('')}</div>`,
-  `<button class="btn dark full" style="font-size:16px;padding:16px" data-act="ob-next">Done</button>`);
- if(ob===2)return wrap(`<span style="width:84px;height:84px;border-radius:26px;background:#E3EFEE;display:flex;align-items:center;justify-content:center">${I('head',42,C.teal)}</span><h2 class="h3">Voice alerts?</h2><p class="small" style="font-size:14px">Hear alerts while you walk. No need to look at your phone.</p>
+ const wrap=(inner,btns,left)=>`<div class="over" role="dialog" aria-modal="true" aria-label="Set up SoleMate" style="background:var(--bg);justify-content:space-between;align-items:stretch;padding:calc(env(safe-area-inset-top) + 64px) 20px calc(env(safe-area-inset-bottom) + 24px);overflow-y:auto;${left?'text-align:left':''}">${ob>0?`<button class="backb" data-act="${S.pickDest?'dest-done':'ob-back'}" aria-label="Back" style="position:absolute;left:16px;top:calc(env(safe-area-inset-top) + 14px)">←</button>`:''}<div style="width:100%;display:flex;flex-direction:column;align-items:${left?'stretch':'center'};gap:14px">${inner}</div><div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-top:20px">${S.pickDest||ob===3?'':obDots(ob)}${btns}</div></div>`;
+ if(ob===0)return wrap(`${S.pendingJoin?`<div class="pill dark">${I('buddy',15,'#111')} Joining ${S.pendingJoin[2]||'a group'} · admin ${S.pendingJoin[1]}</div>`:''}
+  <div style="display:flex;align-items:center;gap:12px;align-self:flex-start">${LOGO(44,'#EE7346')}<span style="font-size:30px;font-weight:600;letter-spacing:-.02em">SoleMate</span></div>
+  <h2 style="font-size:36px;font-weight:600;letter-spacing:-.03em;line-height:1.08;align-self:flex-start;text-align:left">Meet your<br>smart insoles.</h2>
+  <div class="tile t-coral"><div class="ttl" style="font-size:22px">Terrain ahead</div><div class="small">Heads-up before ice and hills</div></div>
+  <div class="tiles2" style="width:100%"><div class="tile t-white"><div style="font-weight:600;font-size:17px">Slip check</div><div class="small">We ask if you’re OK</div></div><div class="tile t-yel"><div style="font-weight:600;font-size:17px">Fall help</div><div class="small">Family, then 911</div></div></div>
+  <p class="small" style="align-self:flex-start;text-align:left">Prototype: your phone acts as the insole.</p>`,
+  `<button class="btn dark full" style="font-size:16px" data-act="ob-next">Get started</button>`,true);
+ if(ob===1)return wrap(`<h2 style="font-size:28px;font-weight:600;letter-spacing:-.02em;text-align:left">Put your phone in your right sock</h2><p class="small" style="text-align:left;margin-top:-6px">In the real product, the sensors are inside the insole.</p>
+  <div class="tile t-white" style="display:flex;justify-content:center">${footArt()}</div>
+  <div class="tile t-dark" style="display:flex;flex-direction:column;gap:12px">${['Stand it upright in the sock','Against the outside of your shin, screen out','Fold the sock over so it can’t wobble'].map((x,i)=>`<div class="mount" style="align-items:center"><span class="n" style="background:var(--coral);color:#111">${i+1}</span><b style="font-size:15px;font-weight:500">${x}</b></div>`).join('')}</div>`,
+  `<button class="btn dark full" style="font-size:16px" data-act="ob-next">Done</button>`,true);
+ if(ob===2)return wrap(`<span style="width:84px;height:84px;border-radius:26px;background:var(--coral);display:flex;align-items:center;justify-content:center;align-self:center">${I('head',42,'#111')}</span><h2 style="font-size:30px;font-weight:600;text-align:center">Voice alerts?</h2><p class="small" style="font-size:14px;text-align:center">Hear alerts while you walk. No need to look at your phone.</p>
   <div role="radiogroup" aria-label="Voice alerts" style="width:100%;display:flex;flex-direction:column;gap:10px">
-   <button class="card" role="radio" aria-checked="true" data-act="ob-voice" style="display:flex;align-items:center;gap:12px;text-align:left;box-shadow:0 0 0 2px ${C.teal} inset,var(--sh)"><span style="width:26px;height:26px;border-radius:50%;background:${C.teal};display:flex;align-items:center;justify-content:center;flex:none">${I('check',16,'#fff')}</span><b style="font-size:16px">Yes, talk to me</b></button>
-   <div class="card" role="radio" aria-checked="false" aria-disabled="true" style="display:flex;align-items:center;gap:12px;color:#57575C;background:#ECE9E4;box-shadow:none"><span style="width:26px;height:26px;border-radius:50%;border:2px solid #C9C3BA;flex:none"></span><b style="font-size:16px">No</b><span class="small" style="margin-left:auto">Not in prototype</span></div></div>`,
-  `<button class="btn dark full" style="font-size:16px;padding:16px" data-act="ob-next">Next</button>`);
+   <button class="tile t-dark sel-tile" role="radio" aria-checked="true" data-act="ob-voice" style="display:flex;align-items:center;gap:12px"><span class="circ w" style="width:28px;height:28px">${I('check',16,'#111')}</span><b style="font-size:16px;font-weight:600">Yes, talk to me</b></button>
+   <div class="tile t-dark" role="radio" aria-checked="false" aria-disabled="true" style="display:flex;align-items:center;gap:12px;opacity:.6"><span style="width:28px;height:28px;border-radius:50%;border:2px solid #777;flex:none"></span><b style="font-size:16px;font-weight:500">No</b><span class="small" style="margin-left:auto">Not in prototype</span></div></div>`,
+  `<button class="btn dark full" style="font-size:16px" data-act="ob-next">Next</button>`);
  const d=S.dest,r=d?(DEST[d]||DEST['River Valley Trail']):null;
- return wrap(`<h2 class="h3">${S.pickDest?'Change destination':'Where are you going?'}</h2>
-  <div style="width:100%;display:flex;gap:8px"><label for="destIn" class="sr-only">Destination</label><input id="destIn" placeholder="Search a place" value="${d&&!DEST[d]?d:''}" style="flex:1;min-width:0;font:inherit;font-size:15px;padding:13px 16px;border-radius:99px;border:0;background:#fff;box-shadow:var(--sh);outline:none"><button class="btn dark" data-act="dest-go" style="padding:13px 16px">Go</button></div>
-  <div style="width:100%;display:flex;flex-direction:column;gap:8px">${Object.keys(DEST).filter(k=>k!=='Nearby trails').map(k=>`<button class="lrow card" data-act="dest-${k}" style="padding:12px 14px;text-align:left;${d===k?`box-shadow:0 0 0 2px ${C.teal} inset,var(--sh)`:''}">${I('pin',18,d===k?C.teal:'#68635B')}<div class="tx"><b>${k}</b></div>${d===k?'<span class="sr-only">selected</span>':''}</button>`).join('')}</div>
-  ${r?`<div class="card" style="width:100%"><div class="tag" style="margin-bottom:8px">On the way</div><div class="row">${r.map(([t,l])=>`<span class="pill soft">${I(ICON[t],15,HCOL[t])}${l}</span>`).join('')}</div></div>`:''}`,
-  S.pickDest?`<button class="btn dark full" style="font-size:16px;padding:16px" data-act="dest-done">Done</button>`:`<button class="btn dark full" style="font-size:16px;padding:16px;${d?'':'background:#ECE9E4;color:#57575C'}" data-act="${d?'start':'ob-need'}" ${d?'':'aria-disabled="true"'}>Start walking</button><button class="btn full" data-act="ob-skip">Skip, go to home</button>`);}
+ const reports=k=>(DEST[k]||[]).filter(x=>x[0]==='ice').reduce((a,x)=>a+x[3],0);
+ const dt=(k,cls,big)=>`<button class="tile ${cls} ${d===k?'sel-tile':''}" data-act="dest-${k}" aria-pressed="${d===k}" style="${big?'min-height:150px':'min-height:112px'}">
+  <div class="${big?'ttl':''}" style="${big?'':'font-size:19px;font-weight:600;line-height:1.1'};max-width:${big?'230px':'110px'}">${k}</div>
+  <div class="small" style="margin-top:6px">${DESTKM[k]} km · about ${Math.round(DESTKM[k]/4.5*60)} min</div>
+  ${big&&reports(k)?`<span class="pill" style="margin-top:12px;background:#111;color:#fff">${I('ice',14,'#fff')} Ice reported today · ${reports(k)} walkers</span>`:''}
+  <span class="circ" style="position:absolute;right:14px;top:14px;width:38px;height:38px">${I(d===k?'check':'up',18,'#fff')}</span></button>`;
+ return wrap(`<div style="display:flex;align-items:center;gap:8px">${LOGO(22,'#EE7346')}<span class="small" style="font-size:15px">Hi there</span></div>
+  <h2 style="font-size:32px;font-weight:600;letter-spacing:-.02em;line-height:1.1">${S.pickDest?'Change your walk':'Where are you<br>walking today?'}</h2>
+  <div style="display:flex;gap:8px"><label for="destIn" class="sr-only">Search a trail or address</label><input id="destIn" placeholder="Search a trail or address" value="${d&&!DEST[d]?d:''}" style="flex:1;min-width:0;font:inherit;font-size:15px;padding:15px 18px;border-radius:99px;outline:none"><button class="btn dark" data-act="dest-go" style="padding:14px 18px">Go</button></div>
+  <div class="chips" role="group" aria-label="Lists"><span class="chip sel">Saved</span><span class="chip">Recent</span><span class="chip">Nearby</span></div>
+  ${dt('River Valley Trail','t-coral',true)}
+  <div class="tiles2">${dt('MacEwan Campus','t-white')}${dt('Hawrelak Park','t-yel')}</div>
+  ${d&&!DEST[d]?`<div class="tile t-dark"><b>${d}</b><div class="small">Custom destination</div></div>`:''}
+  <div class="tile t-dark" style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;align-items:center;gap:12px">${I('head',20,'#fff')}<div style="flex:1"><b style="font-weight:500">Voice alerts</b><div class="small">Spoken through earbuds</div></div>${tg(S.voice!==false,'voice','Voice alerts')}</div><div style="display:flex;align-items:center;gap:12px">${I('flat',20,'#fff')}<div style="flex:1"><b style="font-weight:500">Share terrain data</b><div class="small">Only the ground, never you</div></div>${tg(S.sharing,'sharing')}</div></div>`,
+  S.pickDest?`<button class="btn coral full" style="font-size:16px" data-act="dest-done">Start walk</button>`:`<button class="btn coral full" style="font-size:16px;${d?'':'opacity:.5'}" data-act="${d?'start':'ob-need'}" ${d?'':'aria-disabled="true"'}>Start walk</button><button class="btn full" style="background:none;color:var(--mute)" data-act="ob-skip">Skip for now, go to home</button>`,true);}
 function demoSheet(open){const s=document.getElementById('sheet');s.classList.toggle('open',open);s.hidden=!open;setTimeout(()=>{a11yPass(s);a11yModal();},0);if(!open)return;
  s.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b style="font-size:17px">Demo controls</b><button class="pill soft" data-act="demo-close">Close</button></div>
  <p class="small" style="margin-bottom:12px">Backup for the live demo. Real sensors keep working at the same time.</p>
@@ -972,7 +1028,9 @@ document.getElementById('app').addEventListener('click',e=>{
  if(a==='resume'){S.onBreak=false;S.breakUntil=0;S.lastStepT=Date.now();toast('Welcome back');}
  else if(a==='coach')S.coachOn=!S.coachOn;
  else if(a==='mode-earbuds'||a==='mode-map')S.alertMode=a.slice(5);
- else if(a==='sharing')S.sharing=!S.sharing;
+ else if(a==='sharing'){S.sharing=!S.sharing;if(!S.started||S.pickDest){renderOverlay();return;}}
+ else if(a==='voice'){S.voice=S.voice===false;S.alertMode=S.voice?'earbuds':'screen';renderOverlay();return;}
+ else if(a==='endwalk'){toast(`Walk saved · ${S.steps.toLocaleString()} steps · ${S.slips} slip${S.slips===1?'':'s'}`);S.onBreak=false;S.pickDest=true;renderOverlay();return;}
  else if(a==='buddy')S.buddy=!S.buddy;
  else if(a.startsWith('b-')){const k=a.slice(2);S.buddies[k]=!S.buddies[k];}
  else if(a==='doctor')toast('Private link created for your doctor · expires in 7 days');
@@ -1024,6 +1082,16 @@ document.getElementById('app').addEventListener('click',e=>{
 document.addEventListener('change',e=>{if(e.target.id==='repDate'){S.repDate=e.target.value||null;render();setTimeout(()=>{const i=document.getElementById('repDate');if(i)i.focus();},0);}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='brkIn'){e.preventDefault();document.querySelector('[data-act=brk-go]').click();return;}if(e.key==='Escape'){if(document.getElementById('sheet').classList.contains('open')){demoSheet(false);return;}if(S.check&&S.check.kind==='compose'){closeCheck();return;}}if(e.key==='Enter'&&e.target.id==='msgIn'){e.preventDefault();document.querySelector('[data-act=compose-send]').click();return;}if(e.key==='Enter'&&e.target.id==='destIn'){e.preventDefault();document.querySelector('[data-act=dest-go]').click();}});
 (()=>{const u=new URLSearchParams(location.search);const c=u.get('join');if(c)S.pendingJoin=[c,u.get('by')||'Admin',u.get('g')];})();
+// SOS lives in Safety and needs a 3-second press so it can't be sent by accident
+let holdT=null;
+const holdStart=e=>{const b=e.target.closest&&e.target.closest('[data-hold=sos]');if(!b||holdT)return;if(e.type==='pointerdown')e.preventDefault();b.classList.add('holding');speak('Keep holding to call for help.',0);
+ holdT=setTimeout(()=>{holdT=null;b.classList.remove('holding');fall('sos');helpNow();},3000);};
+const holdEnd=()=>{if(!holdT)return;clearTimeout(holdT);holdT=null;document.querySelectorAll('[data-hold=sos]').forEach(x=>x.classList.remove('holding'));toast('Hold for 3 seconds to send SOS');};
+document.addEventListener('pointerdown',holdStart);['pointerup','pointercancel','pointerleave'].forEach(t=>document.addEventListener(t,e=>{if(holdT&&(t!=='pointerleave'||e.target.closest&&e.target.closest('[data-hold=sos]')))holdEnd();},true));
+document.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&e.target.closest&&e.target.closest('[data-hold=sos]')&&!e.repeat){e.preventDefault();holdStart(e);}});
+document.addEventListener('keyup',e=>{if((e.key===' '||e.key==='Enter')&&e.target.closest&&e.target.closest('[data-hold=sos]'))holdEnd();});
+// splash
+(()=>{const sp=document.createElement('div');sp.className='splash';sp.setAttribute('aria-hidden','true');sp.innerHTML=`<div style="display:flex;align-items:center;gap:12px">${LOGO(56,'#fff')}<span style="font-size:38px;font-weight:600;color:#fff;letter-spacing:-.02em">SoleMate</span></div><div style="color:rgba(255,255,255,.92);font-size:15px">Smart insoles for safer winter walks</div>`;document.getElementById('app').appendChild(sp);setTimeout(()=>sp.classList.add('out'),1100);setTimeout(()=>sp.remove(),1600);})();
 render();
 </script>
 </body>
