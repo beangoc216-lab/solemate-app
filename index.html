@@ -42,7 +42,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .btn.full{width:100%}
 .seg{display:flex;background:var(--soft);border-radius:99px;padding:4px;gap:2px}
 .seg button{flex:1;padding:10px 6px;border-radius:99px;font-size:13px;font-weight:600;color:var(--mute)}
-.seg button.sel{background:#fff;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.seg button.sel{background:#fff;color:#111;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .banner{border-radius:22px;padding:16px;color:#fff;display:flex;gap:12px;align-items:center;animation:pop .35s ease}
 .banner b{display:block;font-size:17px;letter-spacing:-.01em}
 .banner span{font-size:12.5px;opacity:.92}
@@ -84,7 +84,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .check{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 92px);z-index:28;background:var(--ink);color:#fff;border-radius:22px;padding:16px;box-shadow:0 12px 30px rgba(0,0,0,.25);animation:pop .3s ease}
 .check b{font-size:16px;display:block}.check p{font-size:12.5px;opacity:.8;margin:3px 0 12px}
 .check .row button{flex:1;padding:11px 8px;border-radius:99px;background:rgba(255,255,255,.14);font-size:13px;font-weight:700;color:#fff}
-.check .row button.w{background:#fff;color:#fff}
+.check .row button.w{background:#fff;color:#111}
 .bar{height:8px;border-radius:99px;background:var(--soft);overflow:hidden;flex:1}.bar i{display:block;height:100%;border-radius:99px}
 .brow{display:flex;align-items:center;gap:10px;font-size:12.5px;margin-top:8px}.brow span{width:92px;color:var(--mute)}.brow b{width:28px;text-align:right;font-size:12.5px}
 .ladder{display:flex;flex-direction:column;gap:8px;width:100%;text-align:left}
@@ -163,6 +163,11 @@ input{background:var(--card)!important;color:#fff!important;border-color:#555!im
 .sel-tile{box-shadow:0 0 0 3px #fff inset}
 .banner{color:#111}.banner span{opacity:1}
 .circ.sm{width:36px;height:36px}.circ.d{background:#333;color:#fff}.circ.r{background:rgba(210,63,47,.22);color:#FF8173}
+.drow{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border-radius:22px;background:var(--card);color:#fff;text-align:left;font:inherit}
+.drow b{font-size:16px;font-weight:600;display:block}.drow.on{background:var(--coral);color:#111}.drow.on .small{color:#111}
+.xrow{display:flex;justify-content:space-between;align-items:center;width:100%}
+.xb{width:40px;height:40px;border-radius:50%;background:var(--card);color:#fff;font-size:18px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none}
+.check .xb{width:34px;height:34px;font-size:16px;background:#333}
 .mtile{background:var(--card);border-radius:24px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .cd{background:rgba(255,255,255,.15);border-radius:24px;padding:16px 18px}
 .full-over{position:absolute;inset:0;z-index:29;background:var(--bg);display:flex;flex-direction:column;align-items:center;text-align:center;padding:calc(env(safe-area-inset-top) + 40px) 20px calc(env(safe-area-inset-bottom) + 22px);overflow-y:auto;gap:14px}
@@ -454,10 +459,12 @@ function openCheck(c){c.t0=Date.now();S.check=c;clearTimeout(checkTimer);
  renderCheck();}
 function closeCheck(){S.check=null;clearTimeout(checkTimer);renderCheck();}
 function renderCheck(){const el=document.getElementById('check');setTimeout(()=>a11yPass(el),0);const c=S.check;if(!c||emer){el.innerHTML='';return;}
- const card=(b,p,btns)=>`<div class="check" role="alertdialog" aria-labelledby="ckT" aria-describedby="ckP"><b id="ckT">${b}</b><p id="ckP">${p}</p><div class="row">${btns}</div></div>`;
+ const BX={breakpick:['ck-back','ck-close'],breakover:['ck-moving','ck-moving'],late:['ck-moving','ck-moving'],breakcustom:['brk-back','ck-close'],compose:['compose-close','compose-close']}[c.kind]||['ck-close','ck-close'];
+ const xr=`<div class="xrow" style="margin-bottom:8px"><button class="xb" data-act="${BX[0]}" aria-label="Back">←</button><button class="xb" data-act="${BX[1]}" aria-label="Close">✕</button></div>`;
+ const card=(b,p,btns)=>`<div class="check" role="alertdialog" aria-labelledby="ckT" aria-describedby="ckP">${xr}<b id="ckT">${b}</b><p id="ckP">${p}</p><div class="row">${btns}</div></div>`;
  const fam=EMERGENCY.join(' & ');
  const full=(chip,title,sub,btns)=>{const T=CHECK_T[c.kind]/1000,left=Math.max(0,Math.ceil(T-(Date.now()-c.t0)/1000)),L=2*Math.PI*110;
-  return`<div class="full-over" role="alertdialog" aria-modal="true" aria-labelledby="ckT" aria-describedby="ckP"><span class="pill" style="background:rgba(238,115,70,.2);color:var(--coral);font-weight:700;letter-spacing:.06em;font-size:11px">${chip}</span>
+  return`<div class="full-over" role="alertdialog" aria-modal="true" aria-labelledby="ckT" aria-describedby="ckP" style="padding-top:calc(env(safe-area-inset-top) + 16px)"><div class="xrow"><button class="xb" data-act="${c.kind==='slip'?'ck-slip-yes':'ck-moving'}" aria-label="Back, I’m OK">←</button><button class="xb" data-act="${c.kind==='slip'?'ck-slip-yes':'ck-moving'}" aria-label="Close, I’m OK">✕</button></div><span class="pill" style="background:rgba(238,115,70,.2);color:var(--coral);font-weight:700;letter-spacing:.06em;font-size:11px">${chip}</span>
   <div style="position:relative;width:220px;height:220px;flex:none"><svg width="220" height="220" viewBox="0 0 240 240" style="transform:rotate(-90deg)" aria-hidden="true"><circle cx="120" cy="120" r="110" stroke="#333" stroke-width="14" fill="none"/><circle id="ckRing" cx="120" cy="120" r="110" stroke="#EE7346" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="${L.toFixed(1)}" stroke-dashoffset="${(L*(1-left/T)).toFixed(1)}"/></svg><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><b id="ckN" style="font-size:72px;font-weight:600;letter-spacing:-.04em;line-height:1">${left}</b><span class="small">seconds to answer</span></div></div>
   <h2 id="ckT" style="font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.15;max-width:330px">${title}</h2><p id="ckP" class="small" style="font-size:14.5px;max-width:320px;margin-top:-4px">${sub}</p>
   <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:4px">${btns}</div>
@@ -465,10 +472,10 @@ function renderCheck(){const el=document.getElementById('check');setTimeout(()=>
  if(c.kind==='slip')el.innerHTML=full('YOUR INSOLES FELT A SLIP','Did you slip, or did you just pause?',`No answer? We’ll text ${fam} your exact location, then call 911.`,'<button class="btn red full" data-act="ck-help">I’m hurt, get help now</button><button class="btn full" data-act="ck-slip-yes">I slipped, but I’m OK</button><button class="btn dark full" data-act="brk-15">Just pausing</button>');
  else if(c.kind==='rest')el.innerHTML=full('YOU STOPPED MOVING','Did you fall?',`No answer? We’ll text ${fam} your exact location.`,'<button class="btn red full" data-act="ck-help">Yes, I need help</button><button class="btn full" data-act="ck-moving">No, I’m OK</button><button class="btn dark full" data-act="brk-15">Just pausing</button>');
  else if(c.kind==='breakpick')el.innerHTML=card('Pause for how long?','Your group will see you paused.','<button class="w" data-act="brk-5">5 min</button><button data-act="brk-15">15 min</button><button data-act="brk-custom">Custom</button>');
- else if(c.kind==='breakcustom')el.innerHTML=`<div class="check" role="dialog" aria-labelledby="ckT"><b id="ckT">Custom pause</b><p>How many minutes? (1 to 240)</p><div class="row" style="flex-wrap:nowrap"><label for="brkIn" class="sr-only">Minutes</label><input id="brkIn" type="number" inputmode="numeric" min="1" max="240" value="${S.lastCustom||45}" style="flex:1;min-width:0;font:inherit;font-size:16px;padding:11px 14px;border-radius:99px;outline:none"><button class="w" data-act="brk-go" style="flex:none;padding:11px 16px">Start</button><button data-act="brk-back" aria-label="Back" style="flex:none;padding:11px 14px">←</button></div><p id="brkErr" role="alert" style="margin:8px 0 0"></p></div>`;
+ else if(c.kind==='breakcustom')el.innerHTML=`<div class="check" role="dialog" aria-labelledby="ckT">${xr}<b id="ckT">Custom pause</b><p>How many minutes? (1 to 240)</p><div class="row" style="flex-wrap:nowrap"><label for="brkIn" class="sr-only">Minutes</label><input id="brkIn" type="number" inputmode="numeric" min="1" max="240" value="${S.lastCustom||45}" style="flex:1;min-width:0;font:inherit;font-size:16px;padding:11px 14px;border-radius:99px;outline:none"><button class="w" data-act="brk-go" style="flex:none;padding:11px 16px">Start</button><button data-act="brk-back" aria-label="Back" style="flex:none;padding:11px 14px">←</button></div><p id="brkErr" role="alert" style="margin:8px 0 0"></p></div>`;
  else if(c.kind==='breakover')el.innerHTML=card('Still paused?','Your pause is over.','<button class="w" data-act="brk-more">+15 min</button><button data-act="ck-moving">I’m fine</button><button data-act="ck-help">I need help</button>');
  else if(c.kind==='late')el.innerHTML=card('Running late?',`You haven’t reached ${S.dest||'your destination'} yet.`,'<button class="w" data-act="late-more">+15 min</button><button data-act="ck-moving">I’m fine</button><button data-act="ck-help">I need help</button>');
- else if(c.kind==='compose')el.innerHTML=`<div class="check" role="dialog" aria-labelledby="ckT"><b id="ckT">${c.to==='group'?'Message the group':'Message '+c.to}</b><p>${c.to==='group'?'Shows on everyone’s map, where you are.':'Only '+c.to+' sees it.'}</p><div class="row" style="flex-wrap:nowrap"><input id="msgIn" aria-label="Message" placeholder="Type a message" style="flex:1;min-width:0;font:inherit;font-size:14px;padding:11px 14px;border-radius:99px;border:0;outline:none"><button class="w" data-act="compose-send" style="flex:none;padding:11px 16px">Send</button><button data-act="compose-close" aria-label="Close" style="flex:none;padding:11px 14px">✕</button></div></div>`;
+ else if(c.kind==='compose')el.innerHTML=`<div class="check" role="dialog" aria-labelledby="ckT">${xr}<b id="ckT">${c.to==='group'?'Message the group':'Message '+c.to}</b><p>${c.to==='group'?'Shows on everyone’s map, where you are.':'Only '+c.to+' sees it.'}</p><div class="row" style="flex-wrap:nowrap"><input id="msgIn" aria-label="Message" placeholder="Type a message" style="flex:1;min-width:0;font:inherit;font-size:14px;padding:11px 14px;border-radius:99px;border:0;outline:none"><button class="w" data-act="compose-send" style="flex:none;padding:11px 16px">Send</button><button data-act="compose-close" aria-label="Close" style="flex:none;padding:11px 14px">✕</button></div></div>`;
  setTimeout(()=>{const f=el.querySelector(c.kind==='compose'?'#msgIn':c.kind==='breakcustom'?'#brkIn':'button');if(f)f.focus();},60);}
 function startBreak(min){S.onBreak=true;S.breakUntil=Date.now()+min*60000;S.breakMin=min;closeCheck();toast(`Paused ${min} min · your group can see it`);render();}
 
@@ -564,8 +571,11 @@ function runHTML(){const h=nextHazard();const recent=S.mount==='sock'&&!S.sensUp
  <div class="tile ${S.onBreak?'t-yel':'t-coral'}" role="status"><div class="tag" style="font-weight:700">Right now</div><div class="ttl" style="margin-top:4px">${nowT}</div><div class="small" style="margin-top:2px">${nowS}</div><span class="circ" style="position:absolute;right:18px;top:50%;transform:translateY(-50%);width:48px;height:48px">${nowI==='check'?F('check',22,'#fff'):I(nowI,22,'#fff')}</span></div>
  ${bannerHTML()}
  ${walkMap()}
- <div class="tiles2"><div class="tile t-yel"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:500">Coming up</span>${h?(h.type==='ice'?F('snow',22,'#111'):I(ICON[h.type]||'alert',22,'#111')):''}</div>${h?`<div class="tbig" style="margin-top:22px"><b id="vNext" style="font-weight:500">${Math.round(ahead(h))} m</b></div><div class="small" style="margin-top:6px">${h.label}</div>`:'<div class="tbig" style="margin-top:22px;font-size:30px">All clear</div>'}</div>
- <div class="tile t-white"><span style="font-weight:500">Today</span><div class="tbig" style="margin-top:22px"><b id="vSteps" style="font-weight:500">${S.steps.toLocaleString()}</b></div><div class="small" style="margin-top:6px">steps · <span id="vDist">${(S.steps*STEP_LEN).toFixed(0)} m</span> · ${S.slips} slip${S.slips===1?'':'s'}</div></div></div>
+ ${h?`<div class="tile t-yel" style="display:flex;align-items:center;gap:14px"><span class="circ" style="width:48px;height:48px">${h.type==='ice'?F('snow',22,'#fff'):I(ICON[h.type]||'alert',22,'#fff')}</span><div style="flex:1;min-width:0"><div class="tag" style="font-weight:700">Coming up</div><b style="font-size:20px;font-weight:600">${h.label}</b></div><b id="vNext" style="font-size:34px;font-weight:500;letter-spacing:-.03em;white-space:nowrap">${Math.round(ahead(h))} m</b></div>`:`<div class="tile t-yel"><div class="tag" style="font-weight:700">Coming up</div><b style="font-size:20px;font-weight:600">All clear ahead</b></div>`}
+ <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+  <div class="tile t-white" style="padding:14px"><div class="tag" style="font-weight:700">Steps</div><b id="vSteps" style="display:block;font-size:26px;font-weight:600;letter-spacing:-.02em;margin-top:6px">${S.steps.toLocaleString()}</b></div>
+  <div class="tile t-dark" style="padding:14px"><div class="tag" style="font-weight:700">Distance</div><b id="vDist" style="display:block;font-size:26px;font-weight:600;letter-spacing:-.02em;margin-top:6px">${(S.steps*STEP_LEN/1000).toFixed(2)}<span style="font-size:14px;font-weight:500"> km</span></b></div>
+  <div class="tile ${S.slips?'t-red':'t-dark'}" style="padding:14px"><div class="tag" style="font-weight:700;${S.slips?'color:#fff':''}">Slips</div><b style="display:block;font-size:26px;font-weight:600;margin-top:6px">${S.slips}</b></div></div>
  <div class="tiles2">${S.onBreak?`<button class="btn dark" data-act="resume">Continue</button>`:`<button class="btn dark" data-act="break" style="display:flex;align-items:center;justify-content:center;gap:8px">${I('pause',17)} Pause</button>`}<button class="btn" data-act="endwalk" style="display:flex;align-items:center;justify-content:center;gap:8px">${I('x',17)} End walk</button></div>`;}
 // small route map on Walk: the path coloured by terrain, + where you are, + a legend with distances
 function walkMap(){const p=at(pos()),tn=terrainNow();
@@ -607,7 +617,7 @@ function mapHTML(embedded){const p=at(pos());
  const sel=S.hazards.find(h=>h.id===S.mapSel);
  return`${embedded?'':`<div class="hdr"><div><h1 class="hT">Map</h1><div class="hS">${S.dest||'River Valley Trail'}</div></div></div>
  ${S.alertMode==='map'?bannerHTML():''}
- `}<div class="card" style="padding:8px;position:relative"><svg id="mapSvg" role="img" aria-label="Trail map: you, ${(S.trek?S.trek.members.length:0)} group members and ${S.hazards.length} terrain points. Use the lists below to select them." viewBox="0 0 316 390" style="width:100%;display:block;border-radius:16px;background:#1E1E1E;touch-action:none"><g id="mapG" transform="${mapT()}">
+ `}<div class="card" style="padding:8px;position:relative"><svg id="mapSvg" role="img" aria-label="Trail map: you, ${(S.trek?S.trek.members.length:0)} group members and ${S.hazards.length} terrain points. Use the lists below to select them." viewBox="0 0 316 390" preserveAspectRatio="xMidYMid slice" style="width:100%;height:250px;display:block;border-radius:16px;background:#1E1E1E;touch-action:none"><g id="mapG" transform="${mapT()}">
  <rect x="-600" y="-600" width="1500" height="1600" fill="#1E1E1E"/>
  <path d="M-300 230C60 200 120 300 200 260S330 300 620 300" stroke="#1C2A36" stroke-width="30" fill="none"/><path d="M-300 124L620 86M116 -300L144 700" stroke="#2A2A2A" stroke-width="8" fill="none"/>
  <circle cx="40" cy="120" r="26" fill="#202B1D"/><circle cx="260" cy="250" r="34" fill="#202B1D"/><circle cx="230" cy="340" r="22" fill="#202B1D"/>
@@ -718,8 +728,8 @@ async function startScan(){const o=document.getElementById('overlay');
   if(window.jsQR)go();else{const sc=document.createElement('script');sc.src='jsqr.js';sc.onload=go;sc.onerror=()=>{toast('Could not load the scanner. Use your Camera app to scan the code.');};document.head.appendChild(sc);}}}
 function stopScan(){clearInterval(scanTimer);clearTimeout(scanTimer);if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}document.getElementById('overlay').innerHTML='';renderOverlay();}
 function trekHTML(){const t=S.trek;
- if(!t)return`<div class="tile t-coral" style="padding:22px"><div class="ttl">Walk together</div><div class="small" style="margin-top:6px;font-size:14px">Create a group and share a QR code, or scan a friend’s code to join.</div><span class="circ" style="position:absolute;right:18px;top:18px">${F('buddy',22,'#fff')}</span></div>
-  <div class="tiles2"><button class="tile t-white" data-act="grp-create" style="min-height:120px"><b style="font-size:18px;font-weight:600">Create a group</b><div class="small" style="margin-top:6px">You’ll be the admin</div><span class="circ" style="position:absolute;right:14px;bottom:14px;width:38px;height:38px">${F('ne',18,'#fff')}</span></button>
+ if(!t)return`<p class="small" style="font-size:14px">Create a group and share a QR code, or scan a friend’s code to join.</p>
+  <div class="tiles2"><button class="tile t-white" data-act="grp-create" style="min-height:120px"><b style="font-size:18px;font-weight:600">Create a group</b><div class="small" style="margin-top:6px;max-width:90px">You’ll be the admin</div><span class="circ" style="position:absolute;right:14px;bottom:14px;width:38px;height:38px">${F('ne',18,'#fff')}</span></button>
   <button class="tile t-yel" data-act="grp-scan" style="min-height:120px"><b style="font-size:18px;font-weight:600">Scan to join</b><div class="small" style="margin-top:6px">Use your camera</div><span class="circ" style="position:absolute;right:14px;bottom:14px;width:38px;height:38px">${F('qr',18,'#fff')}</span></button></div>`;
  const iAmAdmin=t.admin==='You';const adminBadge=`<span class="pill dark" style="padding:3px 9px;font-size:11px;font-weight:600">Admin</span>`;
  const row=k=>{const v=t.vis[k]||'loc';return`<div class="mtile"><div style="display:flex;align-items:center;gap:12px"><div class="av" style="background:${PEOPLE[k].c}">${k[0]}</div><div style="flex:1;min-width:0"><b style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:16px">${k} ${t.admin===k?adminBadge:''}</b><span class="small">${memberDist(k)} m away</span></div>
@@ -730,7 +740,7 @@ function trekHTML(){const t=S.trek;
  <div style="display:flex;justify-content:space-between;align-items:center"><span class="tag" style="font-weight:700">What each person sees of you</span>${iAmAdmin&&!S.addOpen?`<button data-act="add-open" style="color:var(--coral);font-weight:600;font-size:13px">+ Add people</button>`:''}</div>
  ${t.members.length?t.members.map(row).join(''):`<p class="small" style="padding:8px 0">Waiting for people to scan…</p>`}
  ${iAmAdmin&&S.addOpen?`<div class="mtile">${Object.keys(PEOPLE).filter(k=>!t.members.includes(k)&&t.admin!==k).map(k=>`<div class="lrow"><div class="av" style="background:${PEOPLE[k].c}" aria-hidden="true">${k[0]}</div><div class="tx"><b>${k}</b><span>${PEOPLE[k].rel}</span></div><button class="pm add" data-act="add-${k}" aria-label="Add ${k}">+</button></div>`).join('')||'<p class="small">Everyone is in the group.</p>'}<button class="btn full" data-act="add-close">Done</button></div>`:''}
- <button class="btn full" data-act="grp-leave" style="color:#FF8173">${iAmAdmin?'End group':'Leave group'}</button>`;}
+ <button class="btn" data-act="grp-leave" style="display:block;width:100%;margin:4px 0 0;border-radius:24px;text-align:center;color:#FF8173;background:rgba(210,63,47,.16)">${iAmAdmin?'End group':'Leave group'}</button>`;}
 function buddyHTML(){const t=S.trek,has=t&&t.members.length,gt=has?(S.grpTab||'members'):'members';return`<div class="hdr"><div><h1 class="hT">${t?t.name:'Group'}</h1>${t?`<div class="hS">Code ${t.code} · ${t.members.length+1} people · ${S.dest||'River Valley Trail'}</div>`:''}</div>${t?`<button class="circ w" data-act="grp-qr" aria-label="${S.showQR?'Hide':'Show'} QR code" style="width:48px;height:48px">${F('qr',20,'#111')}</button>`:''}</div>
  ${has?`<div class="seg" role="tablist" aria-label="Group view" style="margin-bottom:12px">${[['members','Members'],['map','Map']].map(([k,l])=>`<button role="tab" aria-selected="${gt===k}" data-act="gtab-${k}" class="${gt===k?'sel':''}">${l}</button>`).join('')}</div>`:''}
  ${gt==='map'?`${mapHTML(true)}<button class="btn coral full" data-act="find-all" style="display:flex;align-items:center;justify-content:center;gap:8px">${F('cam',17,'#fff')} See everyone’s footsteps in AR</button>`:trekHTML()}
@@ -759,8 +769,8 @@ const relDeg=k=>{if(arBear[k]==null&&heading!=null)arBear[k]=(heading+PEOPLE[k].
 function fpCanvas(right,col){const c=document.createElement('canvas');c.width=120;c.height=200;const x=c.getContext('2d');const col2=col||'#EE7346';
  x.translate(60,100);if(right)x.scale(-1,1);x.scale(.36,.36);x.translate(-124,-208);const pth=new Path2D(MARKD);
  x.shadowColor=col2;x.shadowBlur=60;x.fillStyle=col2;x.fill(pth,'evenodd');x.shadowBlur=0;x.lineWidth=10;x.strokeStyle='#fff';x.stroke(pth);x.fill(pth,'evenodd');return c;}
-const TRAIL_STEP=0.38,REVEAL=6;
-function trailPt(i){const s=1.2+i*TRAIL_STEP;return{s,lat:(i%2?0.09:-0.09)+0.35*Math.sin(s*0.33),tan:0.35*0.33*Math.cos(s*0.33),right:i%2===1};}
+const TRAIL_STEP=0.75,REVEAL=7;
+function trailPt(i){const s=1.2+i*TRAIL_STEP;return{s,lat:(i%2?0.15:-0.15)+0.35*Math.sin(s*0.33),tan:0.35*0.33*Math.cos(s*0.33),right:i%2===1};}
 function arLoop(){if(tab!=='ar'||xrState){arLoopOn=false;return;}arLoopOn=true;requestAnimationFrame(arLoop);
  const cv=document.getElementById('arCv');if(!cv)return;const W=cv.clientWidth,H=cv.clientHeight;if(!W)return;
  if(cv.width!==W*2){cv.width=W*2;cv.height=H*2;}const x=cv.getContext('2d');x.setTransform(2,0,0,2,0,0);x.clearRect(0,0,W,H);
@@ -774,8 +784,8 @@ function arLoop(){if(tab!=='ar'||xrState){arLoopOn=false;return;}arLoopOn=true;r
   for(let i=0;i<60;i++){const p=trailPt(i),al=p.s-arWalk;if(al<0.3||al>REVEAL+0.5)continue;
    const a=Math.min(1,(REVEAL-al)/0.8)*Math.min(1,(al-0.3)/0.4);if(a<=0)continue;
    const sk=k+i;if(!arSeen[sk])arSeen[sk]=now;const pop=Math.max(0,1-(now-arSeen[sk])/350);
-   const hl=0.14*(1+0.12*pop),heel=proj(al-hl,p.lat-p.tan*hl),toe=proj(al+hl,p.lat+p.tan*hl);if(!heel||!toe)continue;
-   const len=Math.hypot(toe.x-heel.x,toe.y-heel.y),wd=0.11*(1+0.12*pop)*f/((heel.d+toe.d)/2);
+   const hl=0.24*(1+0.12*pop),heel=proj(al-hl,p.lat-p.tan*hl),toe=proj(al+hl,p.lat+p.tan*hl);if(!heel||!toe)continue;
+   const len=Math.hypot(toe.x-heel.x,toe.y-heel.y),wd=0.29*(1+0.12*pop)*f/((heel.d+toe.d)/2);
    items.push({d:(heel.d+toe.d)/2,a:a*0.82,cxp:(heel.x+toe.x)/2,cyp:(heel.y+toe.y)/2,ang:Math.atan2(toe.y-heel.y,toe.x-heel.x)+Math.PI/2,len,wd,img:fpFor(k,p.right)});}
   const fd=memberDist(k)-arWalk;const fpnt=fd>0.5&&fd<300?proj(Math.min(fd,REVEAL+4),0):null;   // friend marker at the end of the trail
   if(fpnt)marks.push([k,fpnt]);}
@@ -799,7 +809,7 @@ async function startXR(){const T=arTargets();if(!T.length)return;const all=S.arT
  const ref=await session.requestReferenceSpace('local'),viewer=await session.requestReferenceSpace('viewer');const hts=await session.requestHitTestSource({space:viewer});
  const mk=c=>{const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;};
  const tex={};for(const k of T)tex[k]=all?[mk(fpCanvas(false,PEOPLE[k].c)),mk(fpCanvas(true,PEOPLE[k].c))]:[mk(fpCanvas(false)),mk(fpCanvas(true))];
- const geo=new THREE.PlaneGeometry(0.11,0.28);geo.rotateX(-Math.PI/2);       // lies flat; toe points to -Z
+ const geo=new THREE.PlaneGeometry(0.29,0.48);geo.rotateX(-Math.PI/2);       // lies flat; toe points to -Z
  const reticle=new THREE.Mesh(new THREE.RingGeometry(0.07,0.09,40).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.8}));reticle.visible=false;scene.add(reticle);
  const tr=T.map(k=>{const fr=new THREE.Mesh(new THREE.SphereGeometry(0.09,24,16),new THREE.MeshBasicMaterial({color:PEOPLE[k].c}));fr.visible=false;scene.add(fr);return{k,fr,dir:null,side:null,next:0};});
  const prints=[],ys=[];let floorY=null,origin=null;
@@ -876,7 +886,8 @@ function renderOverlay(){const o=document.getElementById('overlay');setTimeout(a
  const msgCard=`<div style="width:100%;text-align:left;background:rgba(0,0,0,.25);border-radius:16px;padding:12px 14px;font-size:12.5px;line-height:1.45"><b style="display:block;font-size:12px;margin-bottom:4px">Sent to ${fam} · ${S.alertsSent[0]||nowHM()}</b>${familyText(emer.src)}</div>`;
  if(emer.state==='ask'){const st=emer.stage,isSos=emer.src==='sos';const LBL={fall:'HARD FALL',slip:'SLIP',still:'NO MOVEMENT',break:'PAUSE OVER',late:'RUNNING LATE',sos:'SOS',check:'YOU ASKED FOR HELP'};
   const mini=`<svg width="100%" height="84" viewBox="0 0 310 84" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="border-radius:16px;display:block;margin-top:10px"><rect width="310" height="84" fill="#1E1E1E"/><path d="M0 52C80 40 140 70 310 50L310 62C140 82 80 52 0 64Z" fill="#1C2A36"/><path d="M20 80C70 60 120 50 160 42S260 20 300 8" stroke="#0B0B0B" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M20 80C70 60 120 50 160 42S260 20 300 8" stroke="#EE7346" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="160" cy="42" r="16" fill="#D23F2F" opacity=".3"/><circle cx="160" cy="42" r="8" fill="#D23F2F" stroke="#fff" stroke-width="3"/></svg>`;
-  o.innerHTML=`<div class="over" role="alertdialog" aria-modal="true" aria-labelledby="emT" aria-describedby="emS" style="background:var(--red);color:#fff;overflow-y:auto;justify-content:flex-start;align-items:stretch;text-align:left;padding:calc(env(safe-area-inset-top) + 28px) 20px calc(env(safe-area-inset-bottom) + 20px);gap:14px">
+  o.innerHTML=`<div class="over" role="alertdialog" aria-modal="true" aria-labelledby="emT" aria-describedby="emS" style="background:var(--red);color:#fff;overflow-y:auto;justify-content:flex-start;align-items:stretch;text-align:left;padding:calc(env(safe-area-inset-top) + 16px) 20px calc(env(safe-area-inset-bottom) + 20px);gap:14px">
+  <div class="xrow"><button class="xb" style="background:rgba(0,0,0,.25)" data-act="ok" aria-label="Back, I’m OK">←</button><button class="xb" style="background:rgba(0,0,0,.25)" data-act="ok" aria-label="Close, I’m OK">✕</button></div>
   <span class="pill" style="align-self:flex-start;background:rgba(255,255,255,.2);color:#fff;font-weight:700;letter-spacing:.06em;font-size:11px">${LBL[emer.src]||'CHECKING ON YOU'}${st>=1?' · NO ANSWER':''}</span>
   <h2 id="emT" style="font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1.05">${st>=1?'Alerting<br>'+fam:w.t}</h2>
   <p id="emS" style="font-size:14.5px;opacity:.95;margin-top:-4px">${w.s}</p>
@@ -900,7 +911,7 @@ function footArt(){return`<svg viewBox="0 0 300 220" width="250" aria-hidden="tr
  <path d="M200 52V22M192 30l8-8 8 8" stroke="${C.orange}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
 function obDots(i){return`<p class="sr-only">Step ${i+1} of 4</p><div aria-hidden="true" style="display:flex;gap:6px;justify-content:center">${[0,1,2,3].map(k=>`<span style="width:${k===i?22:7}px;height:7px;border-radius:9px;background:${k===i?'#fff':'#555'};transition:width .2s"></span>`).join('')}</div>`;}
 function startHTML(){const ob=S.pickDest?2:(S.ob||0);
- const wrap=(inner,btns,left)=>`<div class="over" role="dialog" aria-modal="true" aria-label="Set up SoleMate" style="background:var(--bg);justify-content:space-between;align-items:stretch;padding:calc(env(safe-area-inset-top) + 64px) 20px calc(env(safe-area-inset-bottom) + 24px);overflow-y:auto;${left?'text-align:left':''}">${ob>0?`<button class="backb" data-act="${S.pickDest?'dest-done':'ob-back'}" aria-label="Back" style="position:absolute;left:16px;top:calc(env(safe-area-inset-top) + 14px)">←</button>`:''}<div style="width:100%;display:flex;flex-direction:column;align-items:${left?'stretch':'center'};gap:14px">${inner}</div><div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-top:20px">${btns}</div></div>`;
+ const wrap=(inner,btns,left)=>`<div class="over" role="dialog" aria-modal="true" aria-label="Set up SoleMate" style="background:var(--bg);justify-content:space-between;align-items:stretch;padding:calc(env(safe-area-inset-top) + 64px) 20px calc(env(safe-area-inset-bottom) + 24px);overflow-y:auto;${left?'text-align:left':''}">${ob>0?`<div class="xrow" style="position:absolute;left:16px;right:16px;top:calc(env(safe-area-inset-top) + 14px);width:auto"><button class="xb" data-act="${S.pickDest?'dest-done':'ob-back'}" aria-label="Back">←</button><button class="xb" data-act="${S.pickDest?'dest-done':'ob-skip'}" aria-label="Close${S.pickDest?'':', go to home'}">✕</button></div>`:''}<div style="width:100%;flex:none;display:flex;flex-direction:column;align-items:${left?'stretch':'center'};gap:14px">${inner}</div><div style="width:100%;flex:none;display:flex;flex-direction:column;gap:12px;margin-top:20px">${btns}</div></div>`;
  if(ob===0)return`<div class="over" role="dialog" aria-modal="true" aria-label="Welcome to SoleMate" style="background:var(--bg);padding:0;justify-content:flex-start;align-items:stretch;text-align:left;gap:0;overflow-y:auto">
   <div style="position:relative;min-height:56dvh;background:#1a1a1a url(insoles.jpg) center 30%/cover;display:flex;flex-direction:column;justify-content:flex-end;padding:0 24px 52px">
    <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.05) 35%,rgba(0,0,0,.78))"></div>
@@ -923,22 +934,17 @@ function startHTML(){const ob=S.pickDest?2:(S.ob||0);
    `<button class="btn ${ok?'dark':''} full" style="font-size:16px;${ok?'':'opacity:.5'}" data-act="${ok?'ob-next':'pair-wait'}" ${ok?'':'aria-disabled="true"'}>${ok?'Continue':'Looking for insoles…'}</button>`,true);}
  const d=S.dest;
  const reports=k=>(DEST[k]||[]).filter(x=>x[0]==='ice').reduce((a,x)=>a+x[3],0);
- const dt=(k,cls,big)=>`<button class="tile ${cls} ${d===k?'sel-tile':''}" data-act="dest-${k}" aria-pressed="${d===k}" style="${big?'min-height:150px':'min-height:112px'}">
-  <div class="${big?'ttl':''}" style="${big?'':'font-size:19px;font-weight:600;line-height:1.1'};max-width:${big?'230px':'110px'}">${k}</div>
-  <div class="small" style="margin-top:6px">${DESTKM[k]} km · about ${Math.round(DESTKM[k]/4.5*60)} min</div>
-  ${big&&reports(k)?`<span class="pill" style="margin-top:12px;background:#111;color:#fff">${I('ice',14,'#fff')} Ice reported today · ${reports(k)} walkers</span>`:''}
-  <span class="circ" style="position:absolute;right:14px;top:14px;width:38px;height:38px">${I(d===k?'check':'up',18,'#fff')}</span></button>`;
+ const rowD=(k,ic)=>{const on=d===k,n=reports(k);return`<button class="drow ${on?'on':''}" data-act="dest-${k}" aria-pressed="${on}"><span class="circ" style="background:${on?'#111':'#333'};width:42px;height:42px">${ic}</span><span style="flex:1;min-width:0"><b>${k}</b><span class="small" style="display:block">${DESTKM[k]} km · about ${Math.round(DESTKM[k]/4.5*60)} min${n?` · ice reported by ${n}`:''}</span></span>${on?F('check',22,'#111'):'<span aria-hidden="true" style="font-size:22px;opacity:.6">›</span>'}</button>`;};
  return wrap(`<div style="display:flex;align-items:center;gap:8px">${LOGO(22,'#EE7346')}<span class="small" style="font-size:15px">Hi there</span></div>
   <h2 style="font-size:32px;font-weight:600;letter-spacing:-.02em;line-height:1.1">${S.pickDest?'Change your walk':'Where are you<br>walking today?'}</h2>
-  <div style="display:flex;gap:8px"><label for="destIn" class="sr-only">Search a trail or address</label><input id="destIn" placeholder="Search a trail or address" value="${d&&!DEST[d]?d:''}" style="flex:1;min-width:0;font:inherit;font-size:15px;padding:15px 18px;border-radius:99px;outline:none"><button class="btn dark" data-act="dest-go" style="padding:14px 18px">Go</button></div>
-  <div class="chips" role="group" aria-label="Lists"><span class="chip sel">Saved</span><span class="chip">Recent</span><span class="chip">Nearby</span></div>
-  ${dt('River Valley Trail','t-coral',true)}
-  <div class="tiles2">${dt('MacEwan Campus','t-white')}${dt('Hawrelak Park','t-yel')}</div>
-  ${d&&!DEST[d]?`<div class="tile t-dark"><b>${d}</b><div class="small">Custom destination</div></div>`:''}
+  <div style="display:flex;gap:8px;align-items:center"><label for="destIn" class="sr-only">Search a trail or address</label><input id="destIn" placeholder="Search a trail or address" value="${d||''}" style="flex:1;min-width:0;font:inherit;font-size:15px;padding:15px 18px;border-radius:99px;outline:none"><button class="btn dark" data-act="dest-go" style="flex:none;padding:14px 18px">Go</button></div>
+  <div class="tag" style="font-weight:700;margin-top:4px">Saved places</div>
+  <div style="display:flex;flex-direction:column;gap:10px">${rowD('River Valley Trail',F('run',20,'#fff'))}${rowD('MacEwan Campus',I('pin',20,'#fff'))}${rowD('Hawrelak Park',I('flat',20,'#fff'))}</div>
+  ${d&&!DEST[d]?`<div class="drow on"><span class="circ" style="background:#111;width:42px;height:42px">${I('pin',20,'#fff')}</span><span style="flex:1"><b>${d}</b><span class="small" style="display:block">Your search</span></span>${F('check',22,'#111')}</div>`:''}
   <div class="tile t-dark" style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;align-items:center;gap:12px">${I('head',20,'#fff')}<div style="flex:1"><b style="font-weight:500">Voice alerts</b><div class="small">Spoken through earbuds</div></div>${tg(S.voice!==false,'voice','Voice alerts')}</div><div style="display:flex;align-items:center;gap:12px">${I('flat',20,'#fff')}<div style="flex:1"><b style="font-weight:500">Share terrain data</b><div class="small">Only the ground, never you</div></div>${tg(S.sharing,'sharing')}</div></div>`,
   S.pickDest?`<button class="btn coral full" style="font-size:16px" data-act="dest-done">Start walk</button>`:`<button class="btn coral full" style="font-size:16px;${d?'':'opacity:.5'}" data-act="${d?'start':'ob-need'}" ${d?'':'aria-disabled="true"'}>Start walk</button><button class="btn full" style="background:none;color:var(--mute)" data-act="ob-skip">Skip for now, go to home</button>`,true);}
 function demoSheet(open){const s=document.getElementById('sheet');s.classList.toggle('open',open);s.hidden=!open;setTimeout(()=>{a11yPass(s);a11yModal();},0);if(!open)return;
- s.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b style="font-size:17px">Demo controls</b><button class="pill soft" data-act="demo-close">Close</button></div>
+ s.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b style="font-size:17px">Demo controls</b><div style="display:flex;gap:8px"><button class="xb" data-act="demo-close" aria-label="Back">←</button><button class="xb" data-act="demo-close" aria-label="Close">✕</button></div></div>
  <p class="small" style="margin-bottom:12px">Backup for the live demo. Real sensors keep working at the same time.</p>
  <div class="grid2"><button class="btn" data-act="d-step">+ Step (midfoot)</button><button class="btn" data-act="d-heel">+ Step (hard heel)</button>
  <button class="btn" data-act="d-slip">Slip on ice</button><button class="btn" data-act="d-hazard">Next hazard</button>
@@ -1017,6 +1023,8 @@ document.getElementById('app').addEventListener('click',e=>{
  if(a==='ob-next'){S.ob=(S.ob||0)+1;renderOverlay();return;}
  if(a==='pair'){enableSensors();S.ob=1;S.paired=false;renderOverlay();setTimeout(()=>{S.paired=true;chime();if(!S.started&&S.ob===1)renderOverlay();},1800);return;}
  if(a==='pair-wait')return;
+ if(a==='ck-close'){closeCheck();render();return;}
+ if(a==='ck-back'){const pv=S.check&&S.check.prev;if(pv)openCheck({kind:pv});else{closeCheck();render();}return;}
  if(a==='mapbig'){S.bigMap=!S.bigMap;render();return;}
  if(a==='share-walk'){const u=location.origin+location.pathname;try{if(navigator.share){navigator.share({title:'SoleMate',text:`I’m walking ${S.dest||'nearby'}. Follow me live:`,url:u}).catch(()=>{});return;}}catch(e){}try{navigator.clipboard.writeText(u);}catch(e){}toast('Live walk link copied');return;}
  if(a==='ob-back'){S.ob=Math.max(0,(S.ob||0)-1);renderOverlay();return;}
